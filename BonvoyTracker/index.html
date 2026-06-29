@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bonvoy Elite Tracker</title>
+<style>
+  :root{
+    --bg:#f5f3ee;
+    --card:#ffffff;
+    --ink:#1f2530;
+    --muted:#74798a;
+    --faint:#a2a7b5;
+    --line:#e9e5da;
+    --line-2:#ded9cb;
+    --gold:#bd8e35;
+    --gold-2:#d8af55;
+    --gold-soft:#f6edd6;
+    --green:#2faa6f;
+    --blue:#3d7fd6;
+    --amber:#d99a2b;
+    --red:#d65b5b;
+    --radius:18px;
+    --shadow:0 4px 18px rgba(40,40,60,0.06);
+    --shadow-lg:0 18px 50px rgba(40,40,60,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(900px 500px at 90% -15%, #faf3e2, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:30px 22px 70px;}
+
+  header.app{display:flex;align-items:center;gap:13px;margin-bottom:22px;}
+  header .badge{width:42px;height:42px;border-radius:12px;background:linear-gradient(150deg,var(--gold-2),var(--gold));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:19px;box-shadow:0 6px 16px rgba(189,142,53,.3);}
+  header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:-.2px;}
+  header p{margin:1px 0 0;font-size:12px;color:var(--muted);}
+
+  nav.tabs{display:flex;gap:5px;background:#efeade;border:1px solid var(--line);
+    padding:5px;border-radius:13px;width:fit-content;margin-bottom:22px;}
+  nav.tabs button{background:transparent;border:none;color:var(--muted);padding:8px 18px;border-radius:9px;
+    font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;}
+  nav.tabs button.active{background:var(--card);color:var(--gold);box-shadow:var(--shadow);}
+
+  .view{display:none;animation:fade .22s ease;}
+  .view.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:16px;}
+  .card h2{font-size:14px;margin:0 0 3px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .card .sub{font-size:12px;color:var(--muted);margin:0 0 18px;}
+  .head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;}
+  .head-row h2{margin-bottom:2px;}
+  .head-row .sub{margin:0;}
+
+  /* stat row */
+  .stats{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .stat{flex:1;min-width:120px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);}
+  .stat .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--faint);font-weight:700;}
+  .stat .v{font-size:26px;font-weight:800;margin-top:5px;letter-spacing:-.5px;}
+  .stat .s{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .stat.gold .v{color:var(--gold);}
+  .stat.green .v{color:var(--green);}
+  .stat.blue .v{color:var(--blue);}
+  .stat .v.sm{font-size:18px;}
+
+  /* projection bar */
+  .track-wrap{margin:30px 4px 8px;}
+  .track{position:relative;height:30px;border-radius:999px;background:#f0ece1;border:1px solid var(--line);}
+  .seg{position:absolute;top:0;bottom:0;}
+  .seg.secured{background:linear-gradient(90deg,var(--gold),var(--gold-2));border-radius:999px 0 0 999px;}
+  .seg.proj{background:repeating-linear-gradient(45deg,#e7c97e,#e7c97e 7px,#f1ddae 7px,#f1ddae 14px);}
+  .seg.bonus{background:linear-gradient(90deg,#2faa6f,#46c79a);}
+  .seg.cap{border-radius:0 999px 999px 0;}
+  .milestone{position:absolute;top:-7px;bottom:-7px;width:2px;background:var(--line-2);}
+  .milestone.major{background:var(--gold);}
+  .milestone .tk{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--muted);}
+  .milestone .nm{position:absolute;top:-21px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--faint);white-space:nowrap;}
+  .marker{position:absolute;top:-9px;bottom:-9px;width:3px;border-radius:3px;z-index:4;}
+  .marker .lab{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:7px;white-space:nowrap;}
+  .marker.now{background:var(--ink);}
+  .marker.now .lab{background:var(--ink);color:#fff;}
+  .marker.pj{background:var(--gold);}
+  .marker.pj .lab{background:var(--gold);color:#fff;}
+  .legend{display:flex;gap:18px;margin-top:28px;}
+  .legend span{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px;}
+  .dot{width:11px;height:11px;border-radius:4px;}
+  .dot.secured{background:var(--gold);}
+  .dot.proj{background:#e7c97e;}
+  .dot.bonus{background:#2faa6f;}
+
+  /* trips */
+  .trip{display:flex;align-items:center;gap:13px;padding:13px 2px;border-bottom:1px solid var(--line);}
+  .trip:last-of-type{border-bottom:none;}
+  .trip .info{flex:1;}
+  .trip .nm{font-size:13.5px;font-weight:600;}
+  .trip .meta{font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .trip .nights{text-align:right;}
+  .trip .nights b{font-size:16px;color:var(--gold);}
+  .trip .nights span{font-size:10px;color:var(--faint);display:block;}
+  .trip.off .nm,.trip.off .nights b{color:var(--faint);}
+  .trip-trash{background:none;border:none;color:var(--faint);cursor:pointer;font-size:14px;padding:4px 6px;border-radius:6px;}
+  .trip-trash:hover{color:var(--red);background:#fbe9e9;}
+  .trip.bonus-trip{background:#eef9f2;border:1px solid #bde6cd;border-radius:12px;padding:13px;margin-top:6px;}
+  .trip.bonus-trip .nm{color:#1f8a5a;}
+  .trip.bonus-trip .nights b{color:#2faa6f;}
+  .trip .gift{width:42px;height:24px;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
+  .tspend{display:flex;align-items:center;gap:2px;flex:none;}
+  .tspend .cur{font-size:12px;color:var(--faint);}
+  .tspend .spend-in{width:74px;background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;}
+  .tspend .spend-in:focus{outline:none;border-color:var(--gold);background:#fff;}
+  .trip.off .tspend .spend-in{color:var(--faint);}
+
+  .sw{position:relative;width:42px;height:24px;flex:none;}
+  .sw input{opacity:0;width:0;height:0;}
+  .sw .slider{position:absolute;inset:0;background:#e3ddcf;border-radius:999px;transition:.2s;cursor:pointer;}
+  .sw .slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .sw input:checked + .slider{background:linear-gradient(150deg,var(--gold-2),var(--gold));}
+  .sw input:checked + .slider:before{transform:translateX(18px);}
+
+  .btn{background:var(--card);border:1px solid var(--line-2);color:var(--ink);border-radius:10px;padding:9px 16px;
+    font-size:13px;font-weight:600;cursor:pointer;transition:.15s;}
+  .btn:hover{border-color:var(--gold);color:var(--gold);}
+  .btn.gold{background:linear-gradient(150deg,var(--gold-2),var(--gold));color:#fff;border:none;}
+  .btn.gold:hover{filter:brightness(1.05);color:#fff;}
+  .btn.link{background:none;border:none;color:var(--gold);padding:6px 4px;}
+  .btn.link:hover{text-decoration:underline;}
+
+  /* add trip form */
+  .add{display:grid;grid-template-columns:1.4fr .8fr .8fr auto;gap:8px;margin-top:16px;}
+  .add input{background:#faf8f3;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;color:var(--ink);width:100%;}
+  .add input:focus{outline:none;border-color:var(--gold);}
+
+  /* ambassador */
+  .lp-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:7px;}
+  .lp-row .r{font-weight:700;}
+  .lp{height:13px;border-radius:999px;background:#f0ece1;border:1px solid var(--line);position:relative;overflow:hidden;margin-bottom:22px;}
+  .lp .f{position:absolute;left:0;top:0;bottom:0;border-radius:999px;}
+  .lp .p{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,#e7c97e,#e7c97e 6px,#f1ddae 6px,#f1ddae 12px);}
+  .bd{margin-top:6px;border:1px solid var(--line);border-radius:13px;padding:6px 14px;background:#faf8f3;}
+  .bd-h{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:700;padding:10px 0 6px;}
+  .bd-row{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:7px 0;border-top:1px solid #efece4;color:var(--ink);}
+  .bd-row span:first-child{color:var(--muted);}
+  .bd-row span:last-child{font-weight:600;font-variant-numeric:tabular-nums;}
+  .bd-row.zero span{color:var(--faint);}
+  .bd-row.total{font-weight:700;}
+  .bd-row.total span{color:var(--ink);}
+  .bd-row.total span:last-child{color:var(--green);}
+  .verdict{display:flex;gap:12px;align-items:flex-start;padding:15px;border-radius:13px;border:1px solid var(--line);background:#faf8f3;margin-top:18px;}
+  .verdict.good{background:#eef9f2;border-color:#bde6cd;}
+  .verdict.warn{background:#fdf6e7;border-color:#f0dca6;}
+  .verdict .ic{font-size:18px;}
+  .verdict .t{font-size:13.5px;font-weight:700;}
+  .verdict .d{font-size:12.5px;color:var(--muted);margin-top:2px;}
+
+  /* modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(30,30,45,.45);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:40px 18px;z-index:50;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--card);border-radius:18px;box-shadow:var(--shadow-lg);max-width:640px;width:100%;max-height:84vh;overflow:auto;}
+  .modal .mh{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);}
+  .modal .mh h2{margin:0;font-size:15px;}
+  .modal .mclose{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:700;padding:9px 14px;border-bottom:1px solid var(--line);position:sticky;top:57px;background:var(--card);}
+  tbody td{padding:9px 14px;border-bottom:1px solid #f1eee6;}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;}
+  .rt{font-weight:700;color:var(--gold);}
+  .chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+  .c-completed{background:#eaf7ef;color:#2faa6f;}
+  .c-booked{background:#fdf3df;color:#bd8e35;}
+  .c-planned{background:#eaf1fb;color:#3d7fd6;}
+  .c-promo{background:#f3edfb;color:#8a5fc0;}
+  .c-creditcard{background:#eef0f8;color:#5a6bb0;}
+  .c-choice{background:#e8f7f5;color:#1f9d8b;}
+  @media(max-width:600px){.add{grid-template-columns:1fr 1fr;}.stats .stat{min-width:45%;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <div class="badge">B</div>
+    <div><h1>Bonvoy Elite Tracker</h1><p>Elite nights · status projection · Ambassador</p></div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="projection" class="active">Projection</button>
+    <button data-tab="ambassador">Ambassador</button>
+  </nav>
+
+  <!-- PROJECTION -->
+  <section class="view active" id="view-projection">
+    <div class="stats" id="proj-stats"></div>
+
+    <div class="card">
+      <div class="head-row">
+        <div><h2>🛏️ Elite Nights Projection</h2><p class="sub">Secured nights plus the trips you've toggled on.</p></div>
+        <button class="btn" id="ledger-btn">View Ledger</button>
+      </div>
+      <div class="track-wrap"><div class="track" id="track"></div></div>
+      <div class="legend">
+        <span><i class="dot secured"></i>Secured (current)</span>
+        <span><i class="dot proj"></i>Projected trips</span>
+        <span id="legend-bonus" style="display:none"><i class="dot bonus"></i>75-night +5 ENC</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✈️ Trips</h2>
+      <p class="sub">Toggle trips on or off to update the projection. Add your own below.</p>
+      <div id="trip-list"></div>
+      <div class="add">
+        <input id="t-name" placeholder="Trip / hotel" />
+        <input id="t-nights" type="number" min="1" value="3" placeholder="Nights" />
+        <input id="t-spend" type="number" min="0" value="0" placeholder="Spend $" />
+        <button class="btn gold" id="t-add">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AMBASSADOR -->
+  <section class="view" id="view-ambassador">
+    <div class="stats" id="amb-stats"></div>
+    <div class="card">
+      <div class="head-row"><div><h2>👑 Ambassador Elite</h2><p class="sub">Requires 100 elite nights <b>and</b> $23,000 qualifying spend.</p></div></div>
+      <div class="lp-row"><span>Elite Nights</span><span class="r" id="amb-n-lab"></span></div>
+      <div class="lp"><div class="f" id="amb-n-f" style="background:var(--gold)"></div><div class="p" id="amb-n-p"></div></div>
+      <div class="lp-row"><span>Qualifying Spend</span><span class="r" id="amb-s-lab"></span></div>
+      <div class="lp"><div class="f" id="amb-s-f" style="background:var(--green)"></div><div class="p" id="amb-s-p"></div></div>
+      <div id="amb-breakdown"></div>
+      <div id="amb-verdict"></div>
+    </div>
+  </section>
+</div>
+
+<!-- LEDGER MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="mh"><h2>📒 Elite Night Ledger</h2><button class="mclose" id="modal-close">✕</button></div>
+    <table><thead><tr><th>Status</th><th>Item</th><th class="n">Nights</th><th class="n">Running</th><th class="n">Spend</th></tr></thead>
+      <tbody id="ledger-body"></tbody></table>
+  </div>
+</div>
+
+<script>
+const AMB_SPEND = 23000;
+const money = n => '$'+Number(n||0).toLocaleString();
+function statusFor(n){ if(n>=100)return'Ambassador'; if(n>=75)return'Titanium'; if(n>=50)return'Platinum'; if(n>=25)return'Gold'; if(n>=10)return'Silver'; return'Member'; }
+
+// Secured ledger = nights you already hold (61). Read-only history.
+const SECURED = [
+  {status:'creditcard', label:'Bonvoy Brilliant (+25 ENC)', nights:25, spend:0},
+  {status:'creditcard', label:'Bonvoy Business (+15 ENC)', nights:15, spend:0},
+  {status:'completed', label:'Ritz-Carlton Half Moon Bay · Mar 21–23', nights:2, spend:0},
+  {status:'promo', label:'Promotional Elite Night Credit', nights:1, spend:0},
+  {status:'completed', label:'Ritz-Carlton Dallas Las Colinas · May 20–21', nights:1, spend:0},
+  {status:'completed', label:'Renaissance Dallas · May 23–24', nights:1, spend:0},
+  {status:'completed', label:'Renaissance Austin · May 24–25', nights:1, spend:0},
+  {status:'completed', label:'Renaissance Austin · May 25–28', nights:3, spend:0},
+  {status:'choice', label:'50-Night Choice Benefit (+5 ENC)', nights:5, spend:0},
+  {status:'completed', label:'Courtyard NYC Central Park · May 31–Jun 7', nights:7, spend:0},
+];
+const SECURED_NIGHTS = SECURED.reduce((s,e)=>s+e.nights,0); // 61
+const SECURED_SPEND  = SECURED.reduce((s,e)=>s+e.spend,0);
+
+function defaultTrips(){return[
+  {id:'b1', status:'booked',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:0,    on:true},
+  {id:'b2', status:'booked',  name:'Chiang Mai Marriott · Nov 20–22',      nights:2, spend:1000, on:true},
+  {id:'b3', status:'booked',  name:'Phulay Bay Ritz Reserve · Nov 22–24',  nights:2, spend:2000, on:true},
+  {id:'b4', status:'booked',  name:'Mandapa Ritz Reserve · Nov 27–30',     nights:3, spend:3000, on:true},
+  {id:'b5', status:'planned', name:'Ritz-Carlton Bangkok · Nov 24–27',     nights:3, spend:1500, on:true},
+  {id:'h1', status:'planned', name:'Bridget Birthday · September',         nights:3, spend:1200, on:false},
+  {id:'h2', status:'planned', name:'Mark Birthday · October',              nights:3, spend:1200, on:false},
+  {id:'h3', status:'planned', name:'December Vacation',                    nights:7, spend:3500, on:false},
+];}
+
+let TRIPS = load();
+function load(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_v2'));if(Array.isArray(s)&&s.length)return s;}catch(e){} return defaultTrips(); }
+function save(){ localStorage.setItem('bonvoy_v2', JSON.stringify(TRIPS)); }
+
+function calc(){
+  const onTrips = TRIPS.filter(t=>t.on);
+  const tripNights = onTrips.reduce((s,t)=>s+Number(t.nights||0),0);
+  const tripSpend  = onTrips.reduce((s,t)=>s+Number(t.spend||0),0);
+  const baseProjected = SECURED_NIGHTS + tripNights;   // before the 75-night benefit
+  const bonus75 = baseProjected >= 75 ? 5 : 0;          // +5 ENC unlocked at 75 projected nights
+  return {
+    current: SECURED_NIGHTS,
+    baseProjected,
+    bonus75,
+    projected: baseProjected + bonus75,
+    securedSpend: SECURED_SPEND,
+    projectedSpend: SECURED_SPEND + tripSpend,
+  };
+}
+
+const $ = s=>document.querySelector(s);
+
+function render(){
+  const c = calc();
+  // stats
+  $('#proj-stats').innerHTML = [
+    {l:'Current Nights', v:c.current, s:statusFor(c.current), cls:'gold'},
+    {l:'Projected Nights', v:c.projected, s:statusFor(c.projected), cls:'gold'},
+    {l:'To Titanium (75)', v:Math.max(0,75-c.projected), s:c.projected>=75?'reached':'nights to go', cls:'blue'},
+    {l:'To Ambassador (100)', v:Math.max(0,100-c.projected), s:c.projected>=100?'reached':'nights to go', cls:''},
+  ].map(x=>`<div class="stat ${x.cls}"><div class="l">${x.l}</div><div class="v">${x.v}</div><div class="s">${x.s}</div></div>`).join('');
+
+  renderTrack(c);
+  renderTrips(c);
+  renderAmbassador(c);
+  save();
+}
+
+function renderTrack(c){
+  const pct = n=>Math.min(100,n); // domain 0..100 nights == 0..100%
+  const tripExtra = c.baseProjected - c.current;       // nights from trips
+  const projExtra = c.projected - c.current;           // total projected beyond now
+  const ms=[25,50,75,100], names={25:'Gold',50:'Platinum',75:'Titanium',100:'Ambassador'};
+  const milestones = ms.map(m=>`<div class="milestone ${m>=75?'major':''}" style="left:${pct(m)}%"><div class="nm">${names[m]}</div><div class="tk">${m}</div></div>`).join('');
+  $('#track').innerHTML =
+    `<div class="seg secured ${projExtra<=0?'cap':''}" style="left:0;width:${pct(c.current)}%"></div>`+
+    (tripExtra>0?`<div class="seg proj ${c.bonus75?'':'cap'}" style="left:${pct(c.current)}%;width:${pct(tripExtra)}%"></div>`:'')+
+    (c.bonus75?`<div class="seg bonus cap" style="left:${pct(c.baseProjected)}%;width:${pct(c.bonus75)}%"></div>`:'')+
+    milestones+
+    `<div class="marker now" style="left:${pct(c.current)}%"><div class="lab">Now ${c.current}</div></div>`+
+    (projExtra>0?`<div class="marker pj" style="left:${pct(c.projected)}%"><div class="lab">Proj ${c.projected}</div></div>`:'');
+  $('#legend-bonus').style.display = c.bonus75 ? 'flex' : 'none';
+}
+
+function renderTrips(c){
+  const bonusRow = c.bonus75 ? `
+    <div class="trip bonus-trip">
+      <div class="gift">🎁</div>
+      <div class="info"><div class="nm">75-Night Choice Benefit · +5 ENC</div><div class="meta">Auto-applied — unlocked at 75 projected nights</div></div>
+      <div class="nights"><b>+5</b><span>nights</span></div>
+    </div>` : '';
+  $('#trip-list').innerHTML = TRIPS.map(t=>`
+    <div class="trip ${t.on?'':'off'}">
+      <label class="sw"><input type="checkbox" data-on="${t.id}" ${t.on?'checked':''}><span class="slider"></span></label>
+      <div class="info"><div class="nm">${t.name}</div><div class="meta">${t.status}</div></div>
+      <div class="tspend"><span class="cur">$</span><input class="spend-in" type="number" min="0" step="100" value="${t.spend}" data-spend="${t.id}" title="Estimated spend"></div>
+      <div class="nights"><b>${t.nights}</b><span>nights</span></div>
+      <button class="trip-trash" data-del="${t.id}">✕</button>
+    </div>`).join('') + bonusRow;
+  $('#trip-list').querySelectorAll('[data-on]').forEach(cb=>cb.addEventListener('change',e=>{
+    const t=TRIPS.find(x=>x.id===e.target.dataset.on); if(t){t.on=e.target.checked; render();}
+  }));
+  $('#trip-list').querySelectorAll('[data-spend]').forEach(inp=>inp.addEventListener('change',e=>{
+    const t=TRIPS.find(x=>x.id===e.target.dataset.spend); if(t){t.spend=Number(e.target.value)||0; render();}
+  }));
+  $('#trip-list').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{
+    TRIPS=TRIPS.filter(x=>x.id!==e.target.dataset.del); render();
+  }));
+}
+
+function renderAmbassador(c){
+  const nightPct=Math.min(100,(c.projected/100)*100), curNightPct=Math.min(100,(c.current/100)*100);
+  const spendPct=Math.min(100,(c.projectedSpend/AMB_SPEND)*100), curSpendPct=Math.min(100,(c.securedSpend/AMB_SPEND)*100);
+  $('#amb-stats').innerHTML=[
+    {l:'Projected Nights', v:c.projected, s:`of 100 · ${Math.max(0,100-c.projected)} to go`, cls:'gold'},
+    {l:'Projected Spend', v:money(c.projectedSpend), s:`of ${money(AMB_SPEND)}`, cls:'green', sm:true},
+    {l:'Spend Remaining', v:money(Math.max(0,AMB_SPEND-c.projectedSpend)), s:'qualifying spend', cls:'', sm:true},
+  ].map(x=>`<div class="stat ${x.cls}"><div class="l">${x.l}</div><div class="v ${x.sm?'sm':''}">${x.v}</div><div class="s">${x.s}</div></div>`).join('');
+
+  $('#amb-n-lab').textContent=`${c.projected} / 100`;
+  $('#amb-n-f').style.width=curNightPct+'%';
+  $('#amb-n-p').style.left=curNightPct+'%'; $('#amb-n-p').style.width=(nightPct-curNightPct)+'%';
+  $('#amb-s-lab').textContent=`${money(c.projectedSpend)} / ${money(AMB_SPEND)}`;
+  $('#amb-s-f').style.width=curSpendPct+'%';
+  $('#amb-s-p').style.left=curSpendPct+'%'; $('#amb-s-p').style.width=(spendPct-curSpendPct)+'%';
+
+  // spend breakdown — where projected spend comes from
+  const onTrips=TRIPS.filter(t=>t.on);
+  let bd='';
+  if(c.securedSpend>0) bd+=`<div class="bd-row"><span>Secured stays</span><span>${money(c.securedSpend)}</span></div>`;
+  onTrips.forEach(t=>{ bd+=`<div class="bd-row ${t.spend?'':'zero'}"><span>${t.name}</span><span>${money(t.spend)}</span></div>`; });
+  if(!onTrips.length && c.securedSpend===0) bd=`<div class="bd-row zero"><span>No projected trips turned on</span><span>—</span></div>`;
+  $('#amb-breakdown').innerHTML=`<div class="bd"><div class="bd-h">Projected spend from trips turned on</div>${bd}
+    <div class="bd-row total"><span>Projected total</span><span>${money(c.projectedSpend)}</span></div></div>`;
+
+  const nightsOk=c.projected>=100, spendOk=c.projectedSpend>=AMB_SPEND;
+  let v;
+  if(nightsOk&&spendOk) v={cls:'good',ic:'👑',t:'On track for Ambassador',d:'Projected to clear both 100 nights and the spend requirement.'};
+  else v={cls:'warn',ic:'⏳',t:'Not yet projected for Ambassador',d:`Need ${Math.max(0,100-c.projected)} more nights and ${money(Math.max(0,AMB_SPEND-c.projectedSpend))} more qualifying spend. Toggle on more trips to model a path.`};
+  $('#amb-verdict').innerHTML=`<div class="verdict ${v.cls}" style="margin-top:18px"><div class="ic">${v.ic}</div><div><div class="t">${v.t}</div><div class="d">${v.d}</div></div></div>`;
+}
+
+function renderLedger(){
+  let rt=0;
+  const secRows = SECURED.map(e=>{ rt+=e.nights; return row(e.status,e.label,e.nights,rt,e.spend); }).join('');
+  const c = calc();
+  let tripRows = TRIPS.filter(t=>t.on).map(t=>{ rt+=Number(t.nights); return row(t.status,t.name,t.nights,rt,t.spend); }).join('');
+  if(c.bonus75){ rt+=c.bonus75; tripRows += row('choice','75-Night Choice Benefit (+5 ENC)',c.bonus75,rt,0); }
+  $('#ledger-body').innerHTML = secRows +
+    `<tr><td colspan="5" style="padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:700;background:#faf8f3;">Projected trips (toggled on)</td></tr>` +
+    (tripRows||`<tr><td colspan="5" style="color:var(--faint);padding:12px 14px;">No trips toggled on.</td></tr>`);
+}
+function row(status,label,nights,rt,spend){
+  const names={completed:'Completed',booked:'Booked',planned:'Planned',promo:'Promo',creditcard:'Credit Card',choice:'Choice'};
+  return `<tr><td><span class="chip c-${status}">${names[status]}</span></td><td>${label}</td>
+    <td class="n">+${nights}</td><td class="n rt">${rt}</td><td class="n">${spend?money(spend):'—'}</td></tr>`;
+}
+
+// events
+$('#tabs').addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON')return;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b===e.target));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+e.target.dataset.tab));
+});
+$('#ledger-btn').addEventListener('click',()=>{ renderLedger(); $('#modal-bg').classList.add('open'); });
+$('#modal-close').addEventListener('click',()=>$('#modal-bg').classList.remove('open'));
+$('#modal-bg').addEventListener('click',e=>{ if(e.target.id==='modal-bg') $('#modal-bg').classList.remove('open'); });
+$('#t-add').addEventListener('click',()=>{
+  const name=$('#t-name').value.trim(); if(!name)return;
+  TRIPS.push({id:'u'+Date.now(),status:'planned',name,nights:Number($('#t-nights').value)||1,spend:Number($('#t-spend').value)||0,on:true});
+  $('#t-name').value='';$('#t-nights').value=3;$('#t-spend').value=0; render();
+});
+
+render();
+</script>
+</body>
+</html>
