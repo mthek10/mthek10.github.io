@@ -1,0 +1,100 @@
+/* Shipping theme — Nike-style "Consumer Services" OMS (bold black/white + orange). */
+:root {
+  --brand: #111111;
+  --brand-dark: #000000;
+  --brand-soft: #f1f1f1;
+  --accent: #fa5400; /* hyped / SNKRS orange */
+
+  --bg: #f4f4f4;
+  --text: #111111;
+  --header-bg: #111111;
+  --header-fg: #ffffff;
+  --header-border: #111111;
+
+  --rail-bg: #000000;
+  --rail-fg: #f4f4f4;
+  --rail-fg-muted: #7a7a7a;
+  --rail-active-bg: rgba(250, 84, 0, 0.18);
+  --rail-active-fg: #ffffff;
+  --rail-border: rgba(255, 255, 255, 0.08);
+
+  --logo-bg: #ffffff;
+  --logo-fg: #111111;
+
+  --font-display: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Athletic, condensed, uppercase display type */
+.app-header .app-name,
+.page-title h1,
+.card-head h2,
+.bignum {
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-weight: 800;
+}
+.page-title h1 {
+  letter-spacing: -0.01em;
+}
+
+/* Header logo: black swoosh-ish mark on white */
+.app-header .app-name .logo {
+  font-size: 11px;
+}
+
+/* Dark header → lighten the reset button + avatar */
+.app-header .btn.ghost {
+  color: #d4d4d4;
+}
+.app-header .btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.app-header .chip {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #e4e4e4;
+}
+.app-header .chip strong {
+  color: #fff;
+}
+.app-header .avatar {
+  background: var(--accent);
+}
+
+/* Status badges, athletic style */
+.badge.placed {
+  background: #111;
+  color: #fff;
+}
+.badge.shipped {
+  background: var(--accent);
+  color: #fff;
+}
+.badge.hyped {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Primary action = black, like a Nike CTA */
+.btn.primary {
+  background: #111;
+  border-color: #111;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 800;
+}
+.btn.primary:hover {
+  background: #000;
+  border-color: #000;
+}
+
+.note-banner {
+  background: #fff;
+  border: 1px solid #111;
+  color: #111;
+}
+.note-banner svg {
+  color: var(--accent);
+}

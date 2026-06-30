@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chart Console</title>
+    <link rel="stylesheet" href="../common/switcher.css?v=1" />
+    <link rel="stylesheet" href="styles.css?v=3" />
+  </head>
+  <body>
+    <nav class="bla-switcher">
+      <a class="bla-brand" href="../index.html"><span class="dot">PB</span> BLA Consoles</a>
+      <a class="bla-link" href="../loyalty/index.html">FQTV Servicing</a>
+      <a class="bla-link" href="../discount/index.html">OrderDesk</a>
+      <a class="bla-link active" href="../snooping/index.html">Chart Console</a>
+      <span class="bla-sp"></span>
+      <a class="bla-home" href="../index.html">All consoles ↗</a>
+    </nav>
+
+    <div class="epic-app">
+      <!-- Top toolbar -->
+      <div class="toolbar">
+        <button class="epic-menu" id="epic-menu"><span class="wrench">🔧</span> Epic ▾</button>
+        <span class="activity-title">Chart Review</span>
+        <div class="lookup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <input id="patient-search" data-pbx-field="patient-search" placeholder="Name, MRN, or DOB" autocomplete="off" />
+          <div class="search-results" id="search-results" hidden></div>
+        </div>
+        <div class="spacer"></div>
+
+        <!-- Active-call status removed from the UI. Hidden hook retained so the
+             PixieBrix mod / real SF Service Cloud Voice can drive transaction-match. -->
+        <span id="softphone" data-pbx-active-call-patient="" hidden></span>
+
+        <span class="search-counter">Searches: <strong id="search-counter" data-pbx-field="search-count-session">0</strong></span>
+        <button class="btn-reset" id="btn-reset">Reset</button>
+      </div>
+
+      <!-- Body -->
+      <div class="epic-body">
+        <!-- Storyboard (pinned left) -->
+        <aside class="storyboard" id="storyboard">
+          <div class="sb-empty">No patient selected.</div>
+        </aside>
+
+        <!-- Chart Review work area -->
+        <main class="workarea">
+          <div class="activity-head">Chart Review</div>
+
+          <!-- Empty state (no chart open) -->
+          <div class="empty-state" id="empty-state">
+            <div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /></svg>
+              <div>Search for a patient to open a chart.</div>
+            </div>
+          </div>
+
+          <!-- Chart container (carries the contract data attributes) -->
+          <div id="patient-chart" data-pbx-record-id="" data-pbx-restricted="" data-pbx-transaction-match="" hidden>
+            <div class="tab-ribbon" id="tab-ribbon">
+              <button data-tab="encounters" class="active">Encounters</button>
+              <button data-tab="notes">Notes</button>
+              <button data-tab="labs">Labs</button>
+              <button data-tab="imaging">Imaging</button>
+              <button data-tab="meds">Meds</button>
+            </div>
+            <div class="tab-panels">
+              <div class="tab-panel" data-tab="encounters">
+                <table class="enc">
+                  <thead>
+                    <tr><th>Date</th><th>Type</th><th>Department</th><th>Provider</th><th>Diagnosis</th></tr>
+                  </thead>
+                  <tbody id="enc-body"></tbody>
+                </table>
+                <div class="enc-empty" id="enc-empty" hidden>No data to display.</div>
+              </div>
+              <div class="tab-panel" data-tab="notes" hidden>
+                <div class="stub">
+                  <div class="stub-row">14JUN · Progress Note · Cardiology · <span data-pbx-mask data-pbx-phi="problem">Dr. Lee</span></div>
+                  <div class="stub-row">02MAY · Telephone Encounter · Primary care · Dr. Osei</div>
+                </div>
+              </div>
+              <div class="tab-panel" data-tab="labs" hidden>
+                <div class="stub">
+                  <div class="stub-row">A1c — <span data-pbx-mask data-pbx-phi="problem">7.4%</span> · 12JUN</div>
+                  <div class="stub-row">Lipid panel — <span data-pbx-mask data-pbx-phi="problem">LDL 132</span> · 12JUN</div>
+                </div>
+              </div>
+              <div class="tab-panel" data-tab="imaging" hidden>
+                <div class="stub">No imaging on file.</div>
+              </div>
+              <div class="tab-panel" data-tab="meds" hidden>
+                <div class="stub" id="meds-stub">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mount points (mod renders here; empty by default) -->
+          <div class="mounts">
+            <div id="pbx-overlay-root"></div>
+            <div id="pbx-audit-root"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="../common/pbx-contract.js?v=3"></script>
+    <script src="data.js?v=3"></script>
+    <script src="app.js?v=5"></script>
+  </body>
+</html>

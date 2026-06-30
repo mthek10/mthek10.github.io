@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BLA Demo Consoles</title>
+    <style>
+      :root {
+        --ink: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f1f5f9;
+        color: var(--ink);
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .launch {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 56px 24px 64px;
+      }
+      .lh-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .lh-mark {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #6366f1, #4338ca);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .lh-head small {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        margin-left: 4px;
+      }
+      .lh-sub {
+        margin: 14px 0 32px;
+        color: var(--muted);
+        font-size: 14.5px;
+        max-width: 640px;
+      }
+      .lh-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+      }
+      .lh-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 22px 22px 24px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        transition: transform 0.08s, box-shadow 0.12s, border-color 0.12s;
+      }
+      .lh-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+        border-color: #cbd5e1;
+      }
+      .lh-sw {
+        display: inline-block;
+        width: 30px;
+        height: 8px;
+        border-radius: 4px;
+        margin-bottom: 14px;
+      }
+      .t-loyalty .lh-sw { background: #378add; }
+      .t-discount .lh-sw { background: #111111; }
+      .t-snooping .lh-sw { background: #2b5c8a; }
+      .lh-name {
+        display: block;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin-bottom: 6px;
+      }
+      .lh-desc {
+        display: block;
+        font-size: 13.5px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .lh-open {
+        display: inline-block;
+        margin-top: 14px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #4f46e5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="launch">
+      <div class="lh-head">
+        <span class="lh-mark">PB</span> BLA Demo Consoles
+        <small>PixieBrix · Business-Logic-Abuse</small>
+      </div>
+      <p class="lh-sub">
+        Each console opens as its own top-level page (no iframes) so PixieBrix can
+        select elements directly. Use the switcher bar at the top of any console to
+        move between them.
+      </p>
+      <div class="lh-cards">
+        <a class="lh-card t-loyalty" href="loyalty/index.html">
+          <span class="lh-sw"></span>
+          <span class="lh-name">FQTV Servicing</span>
+          <span class="lh-desc">Airline frequent-flyer servicing console (Amadeus Altéa style) — goodwill, retro claims, points transfer, redemption.</span>
+          <span class="lh-open">Open console →</span>
+        </a>
+        <a class="lh-card t-discount" href="discount/index.html">
+          <span class="lh-sw"></span>
+          <span class="lh-name">OrderDesk</span>
+          <span class="lh-desc">adidas order &amp; billing console — manual discounts/overrides and a checkout shipping-address step.</span>
+          <span class="lh-open">Open console →</span>
+        </a>
+        <a class="lh-card t-snooping" href="snooping/index.html">
+          <span class="lh-sw"></span>
+          <span class="lh-name">Chart Console</span>
+          <span class="lh-desc">Epic Hyperspace–style EHR — Storyboard, Chart Review, restricted-patient record access.</span>
+          <span class="lh-open">Open console →</span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

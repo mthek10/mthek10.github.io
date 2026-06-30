@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FQTV Servicing Console</title>
+    <link rel="stylesheet" href="../common/switcher.css?v=1" />
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <nav class="bla-switcher">
+      <a class="bla-brand" href="../index.html"><span class="dot">PB</span> BLA Consoles</a>
+      <a class="bla-link active" href="../loyalty/index.html">FQTV Servicing</a>
+      <a class="bla-link" href="../discount/index.html">OrderDesk</a>
+      <a class="bla-link" href="../snooping/index.html">Chart Console</a>
+      <span class="bla-sp"></span>
+      <a class="bla-home" href="../index.html">All consoles ↗</a>
+    </nav>
+
+    <div class="altea-app">
+      <!-- Menu bar -->
+      <div class="menubar">
+        <nav>
+          <a href="#" onclick="return false">PNR</a>
+          <a href="#" onclick="return false">Profile</a>
+          <a href="#" onclick="return false">Tools</a>
+          <a href="#" onclick="return false">Help</a>
+        </nav>
+        <span class="spacer"></span>
+        <span class="cryptic" id="cryptic-toggle">⌷ Cryptic window</span>
+      </div>
+      <input class="cryptic-box" id="cryptic-box" placeholder="&gt;" hidden />
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="tb-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <input id="member-search" data-pbx-field="member-search" placeholder="Search FQTV number or name" autocomplete="off" />
+        </div>
+        <a class="tb-link" href="#" onclick="return false">PNR</a>
+        <span class="tb-cmd" id="cmd-echo">&gt; FQTV/AA1029384_</span>
+        <span class="spacer"></span>
+        <span class="manual-counter" id="manual-credits-counter" data-pbx-field="manual-credits-today">⚠ Manual credits today: 8</span>
+        <button class="btn-reset" id="btn-reset">Reset</button>
+      </div>
+
+      <!-- FQTV profile header -->
+      <div class="pheader">
+        <div class="pavatar" id="p-avatar">JV</div>
+        <div class="pident">
+          <div class="pname"><span id="p-name">VALE / JORDAN MR</span><span class="tier-band" id="p-tier">Gold</span></div>
+          <div class="psub" id="p-sub"></div>
+        </div>
+        <span class="spacer"></span>
+        <div class="pmiles">
+          <div class="pmiles-label">Available miles</div>
+          <div class="pmiles-figure" id="available-miles">64,300</div>
+          <div class="pmiles-next" id="p-next">12,500 to Platinum</div>
+        </div>
+      </div>
+
+      <!-- Tab strip -->
+      <div class="tabstrip">
+        <button class="tab" data-tab="pnrs">PNRs</button>
+        <button class="tab" data-tab="notes">Profile notes</button>
+        <button class="tab" data-tab="messages">Messages</button>
+        <button class="tab" data-tab="remarks">Remarks</button>
+        <button class="tab active" data-tab="mileage">Mileage activity</button>
+      </div>
+
+      <!-- Mileage activity tab (built fully) -->
+      <div class="tabpanel" data-tab="mileage">
+        <!-- Panel: Mileage account activity -->
+        <div class="panel" data-panel="ledger">
+          <div class="panel-head">
+            <span class="chev">▾</span> Mileage account activity
+            <span class="spacer"></span>
+            <span class="hint">Expand all</span>
+          </div>
+          <div class="panel-body">
+            <table class="ledger">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Activity</th>
+                  <th>Type</th>
+                  <th class="num">Miles</th>
+                  <th class="num">Balance</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Panel: Servicing -->
+        <div class="panel" data-panel="servicing">
+          <div class="panel-head">
+            <span class="chev">▾</span> Servicing
+          </div>
+          <div class="panel-body">
+            <div class="seg" id="action-seg">
+              <button data-action="goodwill">Goodwill</button>
+              <button data-action="retro">Retro claim</button>
+              <button data-action="transfer" class="active">Points transfer</button>
+              <button data-action="redemption">Redemption</button>
+            </div>
+
+            <!-- Goodwill / compensation -->
+            <div class="action" data-action="goodwill" hidden>
+              <div class="frow">
+                <div class="field">
+                  <label for="adjust-amount">Amount (miles)</label>
+                  <input id="adjust-amount" type="number" data-pbx-field="points-amount" placeholder="e.g. 75000" />
+                </div>
+                <div class="field grow">
+                  <label for="adjust-reason">Reason</label>
+                  <input id="adjust-reason" type="text" placeholder="Service recovery reason" />
+                </div>
+              </div>
+              <div class="action-foot">
+                <span class="fkeys mono">F12 menu · F4 adjust</span>
+                <span class="spacer"></span>
+                <button class="btn btn-primary" id="btn-submit-goodwill-adjustment" data-pbx-action="goodwill-adjustment">Submit goodwill</button>
+              </div>
+            </div>
+
+            <!-- Retro claim -->
+            <div class="action" data-action="retro" hidden>
+              <div class="frow">
+                <div class="field">
+                  <label for="retro-flight-no">Flight number</label>
+                  <input id="retro-flight-no" type="text" placeholder="e.g. AA1423" />
+                </div>
+                <div class="field">
+                  <label for="retro-flight-date">Flight date</label>
+                  <input id="retro-flight-date" type="text" placeholder="DDMON e.g. 18JUN" />
+                </div>
+                <div class="field grow">
+                  <label for="retro-reject-reason">Reject reason (required to reject)</label>
+                  <input id="retro-reject-reason" type="text" placeholder="Reason if rejecting" />
+                </div>
+              </div>
+              <div class="retro-status mono" id="retro-status">
+                Back-dating window 14–180 days · matching flight: — · days since departure: —
+              </div>
+              <div class="action-foot">
+                <span class="fkeys mono">F12 menu · F4 adjust</span>
+                <span class="spacer"></span>
+                <button class="btn btn-danger" id="btn-reject-retro" data-pbx-action="retro-claim" data-decision="reject">Reject</button>
+                <button class="btn btn-primary" id="btn-accept-retro" data-pbx-action="retro-claim" data-decision="accept">Accept retro</button>
+              </div>
+            </div>
+
+            <!-- Points transfer (default visible) -->
+            <div class="action" data-action="transfer">
+              <div class="frow">
+                <div class="field">
+                  <label for="transfer-recipient">Recipient account</label>
+                  <select id="transfer-recipient" data-pbx-field="recipient-account" data-pbx-recipient-age-days=""></select>
+                </div>
+                <div class="field">
+                  <label for="transfer-amount">Amount (miles)</label>
+                  <input id="transfer-amount" type="number" data-pbx-field="points-amount" />
+                </div>
+              </div>
+              <div class="action-foot">
+                <span class="fkeys mono">F12 menu · F4 adjust</span>
+                <span class="spacer"></span>
+                <button class="btn btn-primary" id="btn-submit-points-transfer" data-pbx-action="points-transfer">Submit transfer</button>
+              </div>
+            </div>
+
+            <!-- Redemption -->
+            <div class="action" data-action="redemption" hidden>
+              <div class="frow">
+                <div class="field">
+                  <label for="redeem-type">Type</label>
+                  <select id="redeem-type"><option>Award ticket</option><option>Cabin upgrade</option></select>
+                </div>
+                <div class="field">
+                  <label for="redeem-recipient">Recipient</label>
+                  <select id="redeem-recipient"><option value="Self">Self</option><option value="Other account">Other account</option></select>
+                </div>
+                <div class="field" id="redeem-recipient-account-wrap" hidden>
+                  <label for="redeem-recipient-account">Other account</label>
+                  <select id="redeem-recipient-account"></select>
+                </div>
+                <div class="field">
+                  <label for="redeem-miles">Miles</label>
+                  <input id="redeem-miles" type="number" placeholder="e.g. 40000" />
+                </div>
+              </div>
+              <div class="action-foot">
+                <span class="fkeys mono">F12 menu · F4 adjust</span>
+                <span class="spacer"></span>
+                <button class="btn btn-primary" id="btn-submit-redemption" data-pbx-action="redemption">Submit redemption</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cosmetic stub tabs -->
+      <div class="tabpanel" data-tab="pnrs" hidden>
+        <div class="stub">
+          <div class="stub-row">X4K9TQ · VALE/JORDAN · AA1423 18JUN LAX–JFK</div>
+          <div class="stub-row">P2M7LB · VALE/JORDAN · AA0044 02JUL JFK–LHR</div>
+        </div>
+      </div>
+      <div class="tabpanel" data-tab="notes" hidden><div class="stub">No profile notes on file.</div></div>
+      <div class="tabpanel" data-tab="messages" hidden><div class="stub">No messages.</div></div>
+      <div class="tabpanel" data-tab="remarks" hidden><div class="stub">No remarks.</div></div>
+
+      <!-- Mount points (mod renders here; empty by default) -->
+      <div class="mounts">
+        <div class="mount-label">PixieBrix mod renders here</div>
+        <div id="pbx-overlay-root"></div>
+        <div id="pbx-audit-root"></div>
+      </div>
+    </div>
+
+    <script src="../common/pbx-contract.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js?v=3"></script>
+  </body>
+</html>

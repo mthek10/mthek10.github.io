@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Consumer Services — Order Ops</title>
+    <link rel="stylesheet" href="../common/console.css" />
+    <link rel="stylesheet" href="theme.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <nav class="nav-rail">
+        <div class="brand-mark">✓</div>
+        <button class="nav-item active" title="Orders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </button>
+        <button class="nav-item" title="Shipments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </button>
+        <button class="nav-item" title="Members">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+        </button>
+        <button class="nav-item" title="Returns">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
+        </button>
+        <div class="rail-spacer"></div>
+        <button class="nav-item" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </nav>
+
+      <div class="app-main">
+        <header class="app-header">
+          <div class="app-name">
+            <span class="logo">CS</span>
+            <span>Consumer Services<small>Order Ops Console</small></span>
+          </div>
+          <div class="spacer"></div>
+          <div class="header-actions">
+            <span class="chip">Agent: <strong id="agent-id">—</strong></span>
+            <button class="btn ghost" id="btn-reset">Reset</button>
+            <div class="avatar" title="Agent">CS</div>
+          </div>
+        </header>
+
+        <div id="pbx-overlay-root"></div>
+
+        <div class="page-title">
+          <h1>Order Operations</h1>
+          <p>Look up an order to service shipping exceptions on the customer's behalf.</p>
+        </div>
+
+        <div class="app-body single">
+          <main>
+            <div class="note-banner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+              Customers cannot edit orders after placement — agent action required.
+            </div>
+
+            <!-- Order lookup -->
+            <div class="card">
+              <div class="card-head"><h2>Order Lookup</h2></div>
+              <div class="card-body">
+                <div class="flex">
+                  <div class="search-box" style="flex: 1">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input id="order-lookup" type="text" placeholder="Order # (e.g. 100247)" autocomplete="off" />
+                  </div>
+                  <button class="btn" id="btn-lookup">Find Order</button>
+                </div>
+                <div class="hint" id="lookup-hint">Try 100247 (PLACED) or 100312 (SHIPPED).</div>
+              </div>
+            </div>
+
+            <!-- Order detail -->
+            <div id="order-detail"></div>
+          </main>
+        </div>
+
+        <div id="pbx-audit-root"></div>
+      </div>
+    </div>
+
+    <script src="../common/pbx-contract.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

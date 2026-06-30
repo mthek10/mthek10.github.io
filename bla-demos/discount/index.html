@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>adidas Order Desk — View Cart</title>
+    <link rel="stylesheet" href="../common/switcher.css?v=1" />
+    <link rel="stylesheet" href="../common/console.css" />
+    <link rel="stylesheet" href="theme.css?v=5" />
+  </head>
+  <body>
+    <nav class="bla-switcher">
+      <a class="bla-brand" href="../index.html"><span class="dot">PB</span> BLA Consoles</a>
+      <a class="bla-link" href="../loyalty/index.html">FQTV Servicing</a>
+      <a class="bla-link active" href="../discount/index.html">OrderDesk</a>
+      <a class="bla-link" href="../snooping/index.html">Chart Console</a>
+      <span class="bla-sp"></span>
+      <a class="bla-home" href="../index.html">All consoles ↗</a>
+    </nav>
+
+    <!-- Header -->
+    <header class="omobo-header">
+      <span class="omobo-logo">
+        <svg class="stripes" viewBox="0 0 40 28" fill="currentColor" aria-hidden="true">
+          <polygon points="0,28 6,28 13,16 7,16" />
+          <polygon points="10,28 16,28 26,9 20,9" />
+          <polygon points="20,28 26,28 39,2 33,2" />
+        </svg>
+        <span class="wordmark">adidas</span>
+      </span>
+      <span class="case-id">Case: <span id="case-id">611AD00000a7XZTRq2</span></span>
+      <div class="spacer"></div>
+      <span class="athlete">Agent: <span id="athlete-name">Marcus Lee</span></span>
+      <button class="translate-btn" id="btn-reset" title="Reset demo" aria-label="Reset demo">↺</button>
+      <button class="translate-btn" title="Translate" aria-label="Translate">文A</button>
+    </header>
+
+    <!-- Mod renders modals/banners here -->
+    <div id="pbx-overlay-root"></div>
+
+    <!-- ============ CART VIEW ============ -->
+    <div id="cart-view">
+    <div class="omobo-body">
+      <!-- Cart column -->
+      <main>
+        <div class="omobo-card cart">
+          <h1 class="cart-title">View Cart (<span id="cart-count">0</span>)</h1>
+          <hr class="cart-rule" />
+          <div id="line-items"></div>
+          <div class="cart-foot">
+            <button class="btn-omobo-muted" id="btn-remove-selected" disabled>
+              REMOVE SELECTED ITEMS (<span id="sel-count">0</span>)
+            </button>
+            <button class="btn-omobo-primary" id="btn-checkout">CHECKOUT</button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Sidebar -->
+      <aside>
+        <!-- Linked Profile -->
+        <div class="omobo-card">
+          <div class="sec-head">
+            <h2>Linked Profile</h2>
+            <div class="spacer"></div>
+            <span class="profile-cur">USD($) <span>🇺🇸</span></span>
+          </div>
+          <div class="sec-pad">
+            <div class="profile-name" id="cust-name">Diego Morales</div>
+            <div class="profile-line" id="cust-email">dmorales.run@gmail.com</div>
+            <div class="profile-line">adiClub Member (<span id="cust-member">6042185530</span>)</div>
+            <div class="profile-links">
+              <a href="#" onclick="return false">View adidas.com Cart</a>
+              <a href="#" onclick="return false">View .com Wishlist</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart Actions (hosts the discount entry) -->
+        <div class="omobo-card">
+          <div class="sec-head"><h2>Cart Actions</h2></div>
+          <div class="sec-pad">
+            <div class="tiercap-note">Agent tier cap: <strong id="tier-cap">20%</strong></div>
+            <div class="action-btns">
+              <button class="btn-omobo-out" id="btn-add-discount">Add Discount</button>
+              <button class="btn-omobo-out" id="btn-add-promo">Add Promo Code</button>
+            </div>
+
+            <!-- Order discount — fixed % presets only (revealed by the buttons above) -->
+            <div class="disc-form" id="discount-form" hidden>
+              <div class="field">
+                <label for="discount-value">Order discount</label>
+                <select id="discount-value" data-pbx-field="discount-value">
+                  <option value="5">5%</option>
+                  <option value="10">10%</option>
+                  <option value="15">15%</option>
+                  <option value="20">20%</option>
+                </select>
+              </div>
+              <button class="btn primary" id="btn-apply-discount" data-pbx-action="apply-discount" style="margin-top: 6px">
+                Apply Discount
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="omobo-card">
+          <div class="sec-head"><h2>Totals</h2></div>
+          <div class="tot-list">
+            <div class="tot-row">
+              <span class="label">Subtotal</span><span class="lead"></span><span class="val" id="tot-subtotal">$0.00</span>
+            </div>
+            <div class="tot-row sub">
+              <span class="label">Discount</span><span class="lead"></span><span class="val" id="tot-discount">$0.00</span>
+            </div>
+            <div class="tot-row">
+              <span class="label">Shipping (Estimated)</span><span class="lead"></span><span class="val" id="tot-shipping">$0.00</span>
+            </div>
+            <div class="tot-row sub">
+              <span class="label">Discount</span><span class="lead"></span><span class="val" id="tot-ship-discount">$0.00</span>
+            </div>
+            <div class="tot-row">
+              <span class="label">Tax (Estimated)</span><span class="lead"></span><span class="val" id="tot-tax">$0.00</span>
+            </div>
+            <div class="tot-row strong">
+              <span class="label">Order Total</span><span class="lead"></span><span class="val" id="tot-order-total">$0.00</span>
+            </div>
+            <hr class="tot-divider" />
+            <div class="tot-row strong">
+              <span class="label">Amount Due</span><span class="lead"></span><span class="val" id="tot-amount-due">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+    </div>
+    <!-- ============ /CART VIEW ============ -->
+
+    <!-- ============ CHECKOUT VIEW (shipping address) ============ -->
+    <div id="checkout-view" hidden>
+      <div class="checkout-wrap">
+        <a class="back-link" id="back-to-cart">‹ Back to cart</a>
+        <h1 class="cart-title">Checkout</h1>
+        <div class="checkout-grid">
+          <!-- Shipping address form. Fraud signals are mirrored as data-pbx-* attrs. -->
+          <main class="omobo-card sec-pad checkout-form" id="checkout-form"
+                data-pbx-known-fraud="false" data-pbx-address-reuse-count="0">
+            <h2 class="form-head">Shipping address</h2>
+
+            <div class="saved-addr">
+              <span class="saved-label">Use a saved address</span>
+              <div class="addr-chips">
+                <button type="button" class="addr-chip" data-addr="onfile">Home · on file</button>
+                <button type="button" class="addr-chip" data-addr="recent">Recent · 14 Maple St</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="ship-name">Full name</label>
+              <input id="ship-name" data-pbx-field="ship-name" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="ship-street">Street address</label>
+              <input id="ship-street" data-pbx-field="ship-street" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="ship-apt">Apt / Suite (optional)</label>
+              <input id="ship-apt" autocomplete="off" />
+            </div>
+            <div class="field-3">
+              <div class="field">
+                <label for="ship-city">City</label>
+                <input id="ship-city" data-pbx-field="ship-city" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label for="ship-state">State</label>
+                <select id="ship-state" data-pbx-field="ship-state">
+                  <option>CA</option><option>OH</option><option>NY</option><option>TX</option>
+                  <option>WA</option><option>FL</option><option>IL</option><option>OR</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="ship-zip">ZIP</label>
+                <input id="ship-zip" data-pbx-field="ship-zip" autocomplete="off" />
+              </div>
+            </div>
+            <div class="field-2">
+              <div class="field">
+                <label for="ship-email">Email</label>
+                <input id="ship-email" type="email" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label for="ship-phone">Phone</label>
+                <input id="ship-phone" autocomplete="off" />
+              </div>
+            </div>
+
+            <button class="btn-omobo-primary block" id="btn-place-order" data-pbx-action="place-order">
+              PLACE ORDER
+            </button>
+          </main>
+
+          <!-- Order summary -->
+          <aside class="omobo-card sec-pad order-summary">
+            <h2 class="form-head">Order summary</h2>
+            <div class="summary-items" id="summary-items"></div>
+            <hr class="tot-divider" />
+            <div class="tot-row"><span class="label">Subtotal</span><span class="lead"></span><span class="val" id="co-subtotal">$0.00</span></div>
+            <div class="tot-row"><span class="label">Discount</span><span class="lead"></span><span class="val" id="co-discount">$0.00</span></div>
+            <div class="tot-row"><span class="label">Shipping</span><span class="lead"></span><span class="val" id="co-shipping">$0.00</span></div>
+            <div class="tot-row strong"><span class="label">Order Total</span><span class="lead"></span><span class="val" id="co-total">$0.00</span></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <!-- ============ /CHECKOUT VIEW ============ -->
+
+    <!-- ============ CONFIRMATION VIEW ============ -->
+    <div id="confirm-view" hidden>
+      <div class="checkout-wrap">
+        <div class="omobo-card confirm-card">
+          <div class="confirm-check">✓</div>
+          <h1>Order placed</h1>
+          <p class="confirm-sub" id="confirm-sub"></p>
+          <button class="btn-omobo-out" id="confirm-back">Back to start</button>
+        </div>
+      </div>
+    </div>
+    <!-- ============ /CONFIRMATION VIEW ============ -->
+
+    <div id="pbx-audit-root"></div>
+
+    <script src="../common/pbx-contract.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js?v=5"></script>
+  </body>
+</html>

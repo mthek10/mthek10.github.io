@@ -1,0 +1,504 @@
+/*
+ * styles.css — Epic Hyperspace "patient chart" style for the Chart Console.
+ * Dense, compact, flat, squared corners. Self-contained (no shared stylesheet).
+ */
+
+:root {
+  --bg-app: #eef1f5;
+  --bg-surface: #ffffff;
+  --bg-secondary: #f4f6f9;
+  --banner-bg: #2b5c8a;
+  --banner-text: #ffffff;
+  --accent: #1e6fb8;
+  --accent-bg: #e7f0f9;
+  --text-primary: #1c2733;
+  --text-secondary: #566273;
+  --text-tertiary: #8a96a6;
+  --border: #d7dde5;
+  --restricted-bg: #fbeaea;
+  --restricted-text: #a32d2d;
+  --ok-text: #246b45;
+  --radius: 4px;
+  --font-sans: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* =============== App frame =============== */
+.epic-app {
+  max-width: 1280px;
+  margin: 14px auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* =============== Top toolbar =============== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 42px;
+  padding: 0 12px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.epic-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+.epic-menu .wrench {
+  font-size: 13px;
+}
+.activity-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.lookup {
+  position: relative;
+  width: 260px;
+}
+.lookup svg {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: var(--text-tertiary);
+}
+.lookup input {
+  width: 100%;
+  height: 28px;
+  padding: 0 10px 0 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--text-primary);
+}
+.search-results {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 14px rgba(28, 39, 51, 0.14);
+  z-index: 30;
+  overflow: hidden;
+}
+.search-results[hidden] {
+  display: none;
+}
+.search-results button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: #fff;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.search-results button:last-child {
+  border-bottom: none;
+}
+.search-results button:hover {
+  background: var(--accent-bg);
+}
+.search-results .sr-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+.toolbar .spacer {
+  flex: 1;
+}
+
+/* Softphone */
+.softphone {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12.5px;
+}
+.softphone .sp-icon {
+  color: var(--text-secondary);
+}
+.softphone.on-call {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.softphone .sp-label strong {
+  font-weight: 600;
+}
+.softphone button {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-secondary);
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.softphone button:hover:not(:disabled) {
+  background: #fff;
+}
+.softphone button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.call-picker {
+  position: absolute;
+  top: 34px;
+  right: 0;
+  width: 220px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 14px rgba(28, 39, 51, 0.14);
+  z-index: 30;
+  overflow: hidden;
+}
+.call-picker[hidden] {
+  display: none;
+}
+.call-picker .cp-head {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.call-picker button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  height: auto;
+}
+.call-picker button:hover {
+  background: var(--accent-bg);
+}
+
+.search-counter {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.search-counter strong {
+  color: var(--text-primary);
+}
+.btn-reset {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.btn-reset:hover {
+  background: var(--bg-secondary);
+}
+
+/* =============== Body: storyboard + work area =============== */
+.epic-body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 540px;
+}
+.storyboard {
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+}
+.workarea {
+  background: var(--bg-app);
+  padding: 0;
+  min-width: 0;
+}
+
+/* =============== Storyboard =============== */
+.sb-empty {
+  padding: 20px 14px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+.sb-banner {
+  padding: 14px;
+  background: var(--banner-bg);
+  color: var(--banner-text);
+  display: flex;
+  gap: 11px;
+  align-items: center;
+}
+.sb-banner.restricted {
+  background: var(--restricted-bg);
+  color: var(--restricted-text);
+  border-bottom: 2px solid var(--restricted-text);
+}
+.sb-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+.sb-banner.restricted .sb-avatar {
+  background: #fff;
+  color: var(--restricted-text);
+}
+.sb-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.sb-agesex {
+  font-size: 12px;
+  opacity: 0.92;
+}
+.sb-restricted-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  background: #fff;
+  color: var(--restricted-text);
+  border: 1px solid var(--restricted-text);
+  border-radius: var(--radius);
+  padding: 1px 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sb-section {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sb-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+.sb-value {
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+.sb-value.mono {
+  font-family: var(--font-mono);
+}
+.sb-kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  padding: 2px 0;
+}
+.sb-kv .k {
+  color: var(--text-secondary);
+}
+.sb-kv .v {
+  font-family: var(--font-mono);
+}
+.sb-list {
+  margin: 0;
+  padding-left: 16px;
+}
+.sb-list li {
+  font-size: 12.5px;
+  padding: 1px 0;
+}
+
+/* =============== Work area =============== */
+.activity-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+}
+.tab-ribbon {
+  display: flex;
+  gap: 0;
+  padding: 0 8px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.tab-ribbon button {
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  padding: 7px 13px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.tab-ribbon button:hover {
+  color: var(--text-primary);
+}
+.tab-ribbon button.active {
+  background: var(--bg-surface);
+  color: var(--accent);
+  border-color: var(--border);
+  border-bottom: 1px solid var(--bg-surface);
+  margin-bottom: -1px;
+  font-weight: 600;
+}
+.tab-panels {
+  background: var(--bg-surface);
+  padding: 12px 14px;
+  min-height: 320px;
+}
+.tab-panel[hidden] {
+  display: none;
+}
+
+/* Encounters table */
+table.enc {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+table.enc th {
+  text-align: left;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 11px;
+}
+table.enc td {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+}
+table.enc td.date {
+  font-family: var(--font-mono);
+}
+.enc-empty {
+  padding: 18px 4px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+/* Stubs */
+.stub {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  background: var(--bg-secondary);
+}
+.stub .stub-row {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.stub .stub-row:last-child {
+  border-bottom: none;
+}
+
+/* Empty state (no chart open) */
+.empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 360px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  text-align: center;
+}
+.empty-state[hidden] {
+  display: none;
+}
+.empty-state svg {
+  width: 40px;
+  height: 40px;
+  opacity: 0.5;
+  margin-bottom: 10px;
+}
+
+/* =============== Mount points =============== */
+.mounts {
+  padding: 0 14px 14px;
+}
+#pbx-overlay-root,
+#pbx-audit-root {
+  /* mod renders here; empty by default */
+}
+
+/* Focus ring (only allowed shadow) */
+.lookup input:focus-visible,
+.epic-menu:focus-visible,
+.softphone button:focus-visible,
+.tab-ribbon button:focus-visible,
+.btn-reset:focus-visible,
+.search-results button:focus-visible,
+.call-picker button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+  border-color: var(--accent);
+}
