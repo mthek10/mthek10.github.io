@@ -137,6 +137,9 @@
   .btn.gold:hover{filter:brightness(1.05);color:#fff;}
   .btn.link{background:none;border:none;color:var(--gold);padding:6px 4px;}
   .btn.link:hover{text-decoration:underline;}
+  .back-btn{background:var(--card);border:1px solid var(--line-2);color:var(--muted);border-radius:10px;
+    padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px;transition:.15s;box-shadow:var(--shadow);}
+  .back-btn:hover{border-color:var(--gold);color:var(--gold);}
 
   /* add trip form */
   .add{display:grid;grid-template-columns:1.4fr .8fr .8fr auto;gap:8px;margin-top:16px;}
@@ -196,7 +199,6 @@
 
   <nav class="tabs" id="tabs">
     <button data-tab="projection" class="active">Status Tracker</button>
-    <button data-tab="ambassador">Ambassador</button>
   </nav>
 
   <!-- PROJECTION -->
@@ -231,6 +233,7 @@
 
   <!-- AMBASSADOR -->
   <section class="view" id="view-ambassador">
+    <button class="back-btn" id="amb-back">‹ Back to Status Tracker</button>
     <div class="stats" id="amb-stats"></div>
     <div class="card">
       <div class="head-row"><div><h2>👑 Ambassador Elite</h2><p class="sub">Requires 100 elite nights <b>and</b> $23,000 qualifying spend.</p></div></div>
@@ -423,6 +426,7 @@ function activateTab(tab){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 $('#tabs').addEventListener('click',e=>{ if(e.target.tagName==='BUTTON') activateTab(e.target.dataset.tab); });
+$('#amb-back').addEventListener('click',()=>activateTab('projection'));
 $('#ledger-btn').addEventListener('click',()=>{ renderLedger(); $('#modal-bg').classList.add('open'); });
 $('#modal-close').addEventListener('click',()=>$('#modal-bg').classList.remove('open'));
 $('#modal-bg').addEventListener('click',e=>{ if(e.target.id==='modal-bg') $('#modal-bg').classList.remove('open'); });
