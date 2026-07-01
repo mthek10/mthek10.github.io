@@ -293,36 +293,6 @@
     </div>
 
     <div class="card">
-      <div class="pts-ctl">
-        <label>Default card
-          <select id="pts-card">
-            <option value="brilliant">Bonvoy Brilliant · 6×</option>
-            <option value="business">Bonvoy Business · 6×</option>
-            <option value="amexplat">Amex Platinum · 5×</option>
-            <option value="csr">Chase Sapphire Reserve · 10× (portal)</option>
-            <option value="none">No card · 0×</option>
-          </select>
-        </label>
-        <label>Default status
-          <select id="pts-tier">
-            <option value="Silver">Silver · +10%</option>
-            <option value="Gold">Gold · +25%</option>
-            <option value="Platinum">Platinum · +50%</option>
-            <option value="Titanium">Titanium · +75%</option>
-            <option value="Ambassador">Ambassador · +75%</option>
-          </select>
-        </label>
-        <label>Base Bonvoy points
-          <select id="pts-base">
-            <option value="10">10× standard</option>
-            <option value="5">5× select-service</option>
-            <option value="2.5">2.5× exec apartments</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <div class="card">
       <div class="head-row">
         <div><h2>Upcoming — projected balance</h2><p class="sub">Toggled-on trips ahead, each adding to your Total Points. Status &amp; spend are editable per stay.</p></div>
         <button class="btn" id="pts-ledger-btn">View Ledger</button>
@@ -540,7 +510,6 @@ function ptRow(r, label, chip, runVal){
 
 function renderPoints(c){
   const baseRate=Number(PTS.base)||10;
-  $('#pts-card').value=PTS.card; $('#pts-tier').value=PTS.tier; $('#pts-base').value=String(baseRate);
   if(document.activeElement!==$('#pts-balance')) $('#pts-balance').value = PTS.balance||'';
 
   const build=(arr,phase)=>arr.map(e=>{
@@ -624,9 +593,6 @@ function activateTab(tab){
 }
 $('#tabs').addEventListener('click',e=>{ if(e.target.tagName==='BUTTON') activateTab(e.target.dataset.tab); });
 $('#amb-back').addEventListener('click',()=>activateTab('projection'));
-$('#pts-card').addEventListener('change',e=>{ PTS.card=e.target.value; render(); });
-$('#pts-tier').addEventListener('change',e=>{ PTS.tier=e.target.value; render(); });
-$('#pts-base').addEventListener('change',e=>{ PTS.base=Number(e.target.value); render(); });
 $('#pts-balance').addEventListener('input',e=>{ PTS.balance=Number(e.target.value)||0; savePts(); render(); });
 $('#promo-add').addEventListener('click',()=>{
   const label=$('#promo-name').value.trim(), pts=Number($('#promo-pts').value)||0;
