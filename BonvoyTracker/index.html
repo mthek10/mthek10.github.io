@@ -189,12 +189,11 @@
   .c-choice{background:#e8f7f5;color:#1f9d8b;}
   .muted{color:var(--muted);}
   /* points */
-  .pts-ctl{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
-  .pts-ctl label{display:flex;flex-direction:column;gap:5px;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:700;}
-  .pts-ctl select,.pts-ctl input{background:#faf8f3;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;color:var(--ink);min-width:170px;font-weight:600;text-transform:none;letter-spacing:0;}
-  .pts-ctl select:focus,.pts-ctl input:focus{outline:none;border-color:var(--gold);}
-  .pts-rate{margin-left:auto;font-size:12.5px;color:var(--muted);background:var(--gold-soft);border:1px solid #ecdcb3;border-radius:10px;padding:9px 14px;align-self:flex-end;}
-  .pts-rate b{color:var(--gold);font-size:16px;}
+  .pts-ctl{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .pts-ctl label{display:flex;flex-direction:column;gap:7px;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:700;}
+  .pts-ctl select{appearance:none;-webkit-appearance:none;background:#faf8f3 url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='none' stroke='%23bd8e35' stroke-width='2' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;border:1px solid var(--line);border-radius:11px;padding:12px 38px 12px 14px;font-size:13.5px;color:var(--ink);font-weight:600;cursor:pointer;transition:.15s;box-shadow:var(--shadow);}
+  .pts-ctl select:hover{border-color:var(--line-2);}
+  .pts-ctl select:focus{outline:none;border-color:var(--gold);}
   #pts-table thead th{position:static;}
   .spend-edit{width:82px;background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;}
   .spend-edit:focus{outline:none;border-color:var(--gold);background:#fff;}
@@ -210,7 +209,7 @@
   tr.pl-open td{color:var(--muted);}
   tr.pl-open td:first-child{color:var(--ink);font-weight:600;}
   tr.pl-total td{border-top:2px solid var(--line-2);background:#faf8f3;font-weight:700;}
-  @media(max-width:600px){.add{grid-template-columns:1fr 1fr;}.stats .stat{min-width:45%;}.pts-rate{margin-left:0;}}
+  @media(max-width:600px){.add{grid-template-columns:1fr 1fr;}.stats .stat{min-width:45%;}.pts-ctl{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -292,35 +291,31 @@
 
     <div class="card">
       <div class="pts-ctl">
-        <label>Default status
+        <label>Default elite status
           <select id="pts-tier">
-            <option value="Silver">Silver (+10%)</option>
-            <option value="Gold">Gold (+25%)</option>
-            <option value="Platinum">Platinum (+50%)</option>
-            <option value="Titanium">Titanium (+75%)</option>
-            <option value="Ambassador">Ambassador (+75%)</option>
+            <option value="Silver">Silver · +10%</option>
+            <option value="Gold">Gold · +25%</option>
+            <option value="Platinum">Platinum · +50%</option>
+            <option value="Titanium">Titanium · +75%</option>
+            <option value="Ambassador">Ambassador · +75%</option>
           </select>
         </label>
         <label>Paying card
           <select id="pts-card">
-            <option value="brilliant">Bonvoy Brilliant (6×)</option>
-            <option value="business">Bonvoy Business (6×)</option>
-            <option value="none">No Bonvoy card (0×)</option>
+            <option value="brilliant">Bonvoy Brilliant · 6×</option>
+            <option value="business">Bonvoy Business · 6×</option>
+            <option value="none">No Bonvoy card · 0×</option>
           </select>
         </label>
-        <button class="btn" id="pts-ledger-btn" style="margin-left:auto">View Ledger</button>
       </div>
     </div>
 
     <div class="card">
-      <h2 style="margin-bottom:4px">Upcoming — projected balance</h2>
-      <p class="sub">Toggled-on trips ahead, each adding to your Total Points. Status, rate &amp; spend are editable.</p>
+      <div class="head-row">
+        <div><h2>Upcoming — projected balance</h2><p class="sub">Toggled-on trips ahead, each adding to your Total Points. Status, rate &amp; spend are editable.</p></div>
+        <button class="btn" id="pts-ledger-btn">View Ledger</button>
+      </div>
       <div style="overflow-x:auto"><table id="pts-table"></table></div>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-bottom:14px">Points breakdown</h2>
-      <div id="pts-breakdown"></div>
     </div>
 
     <div class="card">
@@ -545,24 +540,12 @@ function renderPoints(c){
   const promoPts=promos.reduce((s,p)=>s+Number(p.pts||0),0);
   const sum=(arr,k)=>arr.reduce((s,r)=>s+r[k],0);
   const earned=sum(earnedRows,'total'), proj=sum(projRows,'total');
-  const baseT=sum(rows,'base'), eliteT=sum(rows,'elite'), cardT=sum(rows,'card');
   const balance=Number(PTS.balance)||0;
   const projTotal=balance+proj+promoPts;
-  const totalAccrued=earned+proj+promoPts;
 
   // three stat values (Total Points is a static, settable input)
   $('#pts-earned').textContent=P(earned);
   $('#pts-projtotal').textContent=P(projTotal);
-
-  // breakdown
-  const bd=[{l:'Base points',v:baseT,c:'var(--gold)'},{l:'Elite bonus',v:eliteT,c:'#46c79a'},{l:`Credit-card points (${CARD_LABEL[PTS.card]})`,v:cardT,c:'#5aa6f0'}];
-  if(promoPts>0) bd.push({l:'Bonus / promo points',v:promoPts,c:'#b07ef0'});
-  const maxB=Math.max(1,...bd.map(b=>b.v));
-  $('#pts-breakdown').innerHTML=bd.map(b=>`
-    <div style="margin-bottom:14px">
-      <div class="lp-row"><span class="l">${b.l}</span><span class="r">${P(b.v)}</span></div>
-      <div class="lp"><div class="f" style="width:${(b.v/maxB)*100}%;background:${b.c}"></div></div>
-    </div>`).join('')+`<div class="lp-row" style="margin-top:8px;font-weight:800"><span>Total accrued</span><span style="color:var(--gold)">${P(totalAccrued)} pts</span></div>`;
 
   // promos list
   $('#promo-list').innerHTML = promos.length
