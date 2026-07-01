@@ -189,7 +189,7 @@
   .c-choice{background:#e8f7f5;color:#1f9d8b;}
   .muted{color:var(--muted);}
   /* points */
-  .pts-ctl{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .pts-ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;}
   .pts-ctl label{display:flex;flex-direction:column;gap:7px;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:700;}
   .pts-ctl select{appearance:none;-webkit-appearance:none;background:#faf8f3 url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='none' stroke='%23bd8e35' stroke-width='2' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;border:1px solid var(--line);border-radius:11px;padding:12px 38px 12px 14px;font-size:13.5px;color:var(--ink);font-weight:600;cursor:pointer;transition:.15s;box-shadow:var(--shadow);}
   .pts-ctl select:hover{border-color:var(--line-2);}
@@ -290,8 +290,38 @@
     </div>
 
     <div class="card">
+      <div class="pts-ctl">
+        <label>Credit card
+          <select id="pts-card">
+            <option value="brilliant">Bonvoy Brilliant · 6×</option>
+            <option value="business">Bonvoy Business · 6×</option>
+            <option value="amexplat">Amex Platinum · 5×</option>
+            <option value="csr">Chase Sapphire Reserve · 3×</option>
+            <option value="none">No card · 0×</option>
+          </select>
+        </label>
+        <label>Elite status
+          <select id="pts-tier">
+            <option value="Silver">Silver · +10%</option>
+            <option value="Gold">Gold · +25%</option>
+            <option value="Platinum">Platinum · +50%</option>
+            <option value="Titanium">Titanium · +75%</option>
+            <option value="Ambassador">Ambassador · +75%</option>
+          </select>
+        </label>
+        <label>Base Bonvoy points
+          <select id="pts-base">
+            <option value="10">10× standard</option>
+            <option value="5">5× select-service</option>
+            <option value="2.5">2.5× exec apartments</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="head-row">
-        <div><h2>Upcoming — projected balance</h2><p class="sub">Toggled-on trips ahead, each adding to your Total Points. Status, rate &amp; spend are editable.</p></div>
+        <div><h2>Upcoming — projected balance</h2><p class="sub">Toggled-on trips ahead, each adding to your Total Points. Status &amp; spend are editable per stay.</p></div>
         <button class="btn" id="pts-ledger-btn">View Ledger</button>
       </div>
       <div style="overflow-x:auto"><table id="pts-table"></table></div>
@@ -322,7 +352,7 @@
 <div class="modal-bg" id="pts-modal-bg">
   <div class="modal">
     <div class="mh"><h2>🎯 Points Ledger — past stays</h2><button class="mclose" id="pts-modal-close">✕</button></div>
-    <table><thead><tr><th>Stay</th><th>Status</th><th class="n">Spend</th><th class="n">Rate</th><th class="n">Points</th><th class="n">Running</th></tr></thead>
+    <table><thead><tr><th>Stay</th><th>Status</th><th class="n">Spend</th><th class="n">Points</th><th class="n">Running</th></tr></thead>
       <tbody id="pts-hist-body"></tbody></table>
   </div>
 </div>
@@ -354,10 +384,10 @@ const securedSpend  = ()=>SECURED.reduce((s,e)=>s+Number(e.spend||0),0);
 
 // ---- Points model ----
 const TIER_BONUS={Silver:0.10,Gold:0.25,Platinum:0.50,Titanium:0.75,Ambassador:0.75};
-const CARD_MULT={brilliant:6,business:6,none:0};
-const CARD_LABEL={brilliant:'Brilliant 6×',business:'Business 6×',none:'No card'};
+const CARD_MULT={brilliant:6,business:6,amexplat:5,csr:3,none:0};
+const CARD_LABEL={brilliant:'Brilliant 6×',business:'Business 6×',amexplat:'Amex Platinum 5×',csr:'Sapphire Reserve 3×',none:'No card'};
 let PTS = loadPts();
-function loadPts(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_pts_v1'));if(s&&s.tier)return s;}catch(e){} return {tier:'Platinum',card:'brilliant'}; }
+function loadPts(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_pts_v1'));if(s&&s.tier)return s;}catch(e){} return {tier:'Platinum',card:'brilliant',base:10}; }
 function savePts(){ localStorage.setItem('bonvoy_pts_v1', JSON.stringify(PTS)); }
 
 function defaultTrips(){return[
@@ -496,7 +526,6 @@ function ptRow(r, label, chip, runVal){
     <td>${r.name} <span class="chip ${chip}">${label}</span></td>
     <td><select class="tier-edit mini-sel" data-editid="${r.id}">${tierOptions(r.tier)}</select></td>
     <td class="n">$<input class="spend-edit" type="number" min="0" step="50" value="${r.spend}" data-editid="${r.id}"></td>
-    <td class="n"><input class="rate-edit" type="number" min="0" step="1" value="${r.rate}" data-editid="${r.id}"></td>
     <td class="n">+${P(r.total)}</td>
     <td class="n rt">${P(runVal)}</td>
   </tr>`;
@@ -504,12 +533,14 @@ function ptRow(r, label, chip, runVal){
 
 function renderPoints(c){
   const cardMult=CARD_MULT[PTS.card];
+  const baseRate=Number(PTS.base)||10;
+  $('#pts-card').value=PTS.card; $('#pts-tier').value=PTS.tier; $('#pts-base').value=String(baseRate);
   if(document.activeElement!==$('#pts-balance')) $('#pts-balance').value = PTS.balance||'';
 
   const build=(arr,phase)=>arr.map(e=>{
-    const tier=e.tier||PTS.tier, rate=(e.rate==null?10:Number(e.rate)), spend=Number(e.spend)||0;
-    const base=spend*rate, elite=Math.round(base*TIER_BONUS[tier]), card=spend*cardMult;
-    return {id:e.id, name:e.name||e.label, spend, tier, rate, base, elite, card, total:base+elite+card, phase};
+    const tier=e.tier||PTS.tier, spend=Number(e.spend)||0;
+    const base=spend*baseRate, elite=Math.round(base*TIER_BONUS[tier]), card=spend*cardMult;
+    return {id:e.id, name:e.name||e.label, spend, tier, base, elite, card, total:base+elite+card, phase};
   });
   const earnedRows=build(SECURED.filter(e=>e.status==='completed'&&Number(e.spend)>0),'earned');
   const projRows=build(TRIPS.filter(t=>t.on&&Number(t.spend)>0),'projected');
@@ -534,21 +565,21 @@ function renderPoints(c){
   }));
 
   // ---- Upcoming ledger (on screen): running projected balance from Total Points ----
-  const ledHead=`<thead><tr><th>Item</th><th>Status</th><th class="n">Spend</th><th class="n">Rate</th><th class="n">Points</th><th class="n">Balance</th></tr></thead>`;
+  const ledHead=`<thead><tr><th>Item</th><th>Status</th><th class="n">Spend</th><th class="n">Points</th><th class="n">Balance</th></tr></thead>`;
   let run=balance;
-  let up=`<tr class="pl-open"><td>Current balance</td><td></td><td class="n"></td><td class="n"></td><td class="n">—</td><td class="n rt">${P(run)}</td></tr>`;
+  let up=`<tr class="pl-open"><td>Current balance</td><td></td><td class="n"></td><td class="n">—</td><td class="n rt">${P(run)}</td></tr>`;
   projRows.forEach(r=>{ run+=r.total; up+=ptRow(r,'Upcoming','c-planned',run); });
-  promos.forEach(p=>{ run+=Number(p.pts||0); up+=`<tr><td>✨ ${p.label} <span class="chip c-promo">Promo</span></td><td></td><td class="n"></td><td class="n"></td><td class="n">+${P(p.pts)}</td><td class="n rt">${P(run)}</td></tr>`; });
-  if(projRows.length===0&&promos.length===0) up+=`<tr><td colspan="6" style="color:var(--faint);padding:12px">No upcoming trips toggled on — toggle trips in Status Tracker, or add promo points above.</td></tr>`;
-  up+=`<tr class="pl-total"><td>Projected balance</td><td></td><td></td><td></td><td></td><td class="n rt">${P(run)}</td></tr>`;
+  promos.forEach(p=>{ run+=Number(p.pts||0); up+=`<tr><td>✨ ${p.label} <span class="chip c-promo">Promo</span></td><td></td><td class="n"></td><td class="n">+${P(p.pts)}</td><td class="n rt">${P(run)}</td></tr>`; });
+  if(projRows.length===0&&promos.length===0) up+=`<tr><td colspan="5" style="color:var(--faint);padding:12px">No upcoming trips toggled on — toggle trips in Status Tracker, or add promo points above.</td></tr>`;
+  up+=`<tr class="pl-total"><td>Projected balance</td><td></td><td></td><td></td><td class="n rt">${P(run)}</td></tr>`;
   $('#pts-table').innerHTML=ledHead+`<tbody>${up}</tbody>`;
 
   // ---- Past ledger (modal): running earned ----
   let er=0;
   $('#pts-hist-body').innerHTML = earnedRows.length
     ? earnedRows.map(r=>{ er+=r.total; return ptRow(r,'Earned','c-completed',er); }).join('')
-      + `<tr class="pl-total"><td>Total earned</td><td></td><td></td><td></td><td></td><td class="n rt" style="color:var(--green)">${P(er)}</td></tr>`
-    : `<tr><td colspan="6" style="color:var(--faint);padding:12px">No completed stays with spend yet.</td></tr>`;
+      + `<tr class="pl-total"><td>Total earned</td><td></td><td></td><td></td><td class="n rt" style="color:var(--green)">${P(er)}</td></tr>`
+    : `<tr><td colspan="5" style="color:var(--faint);padding:12px">No completed stays with spend yet.</td></tr>`;
 }
 
 function setField(id, field, val){
@@ -588,6 +619,9 @@ function activateTab(tab){
 }
 $('#tabs').addEventListener('click',e=>{ if(e.target.tagName==='BUTTON') activateTab(e.target.dataset.tab); });
 $('#amb-back').addEventListener('click',()=>activateTab('projection'));
+$('#pts-card').addEventListener('change',e=>{ PTS.card=e.target.value; render(); });
+$('#pts-tier').addEventListener('change',e=>{ PTS.tier=e.target.value; render(); });
+$('#pts-base').addEventListener('change',e=>{ PTS.base=Number(e.target.value); render(); });
 $('#pts-balance').addEventListener('input',e=>{ PTS.balance=Number(e.target.value)||0; savePts(); render(); });
 $('#promo-add').addEventListener('click',()=>{
   const label=$('#promo-name').value.trim(), pts=Number($('#promo-pts').value)||0;
