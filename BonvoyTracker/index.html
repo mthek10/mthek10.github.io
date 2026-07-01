@@ -191,13 +191,25 @@
   /* points */
   .pts-ctl{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
   .pts-ctl label{display:flex;flex-direction:column;gap:5px;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:700;}
-  .pts-ctl select{background:#faf8f3;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;color:var(--ink);min-width:180px;font-weight:600;text-transform:none;letter-spacing:0;}
-  .pts-ctl select:focus{outline:none;border-color:var(--gold);}
-  .pts-rate{margin-left:auto;font-size:12.5px;color:var(--muted);background:var(--gold-soft);border:1px solid #ecdcb3;border-radius:10px;padding:9px 14px;}
+  .pts-ctl select,.pts-ctl input{background:#faf8f3;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;color:var(--ink);min-width:170px;font-weight:600;text-transform:none;letter-spacing:0;}
+  .pts-ctl select:focus,.pts-ctl input:focus{outline:none;border-color:var(--gold);}
+  .pts-rate{margin-left:auto;font-size:12.5px;color:var(--muted);background:var(--gold-soft);border:1px solid #ecdcb3;border-radius:10px;padding:9px 14px;align-self:flex-end;}
   .pts-rate b{color:var(--gold);font-size:16px;}
   #pts-table thead th{position:static;}
   .spend-edit{width:82px;background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;}
   .spend-edit:focus{outline:none;border-color:var(--gold);background:#fff;}
+  .mini-sel{background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-size:11.5px;color:var(--ink);font-weight:600;}
+  .rate-edit{width:52px;background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;}
+  .mini-sel:focus,.rate-edit:focus{outline:none;border-color:var(--gold);background:#fff;}
+  .promo-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line);}
+  .promo-row:last-child{border-bottom:none;}
+  .promo-row .pn{flex:1;font-size:13.5px;font-weight:600;}
+  .promo-row .pp{font-size:13px;color:var(--gold);font-weight:700;}
+  .bal-input{width:100%;background:transparent;border:none;border-bottom:2px dashed var(--line-2);font-size:26px;font-weight:800;color:var(--gold);letter-spacing:-.5px;padding:0 0 3px;font-variant-numeric:tabular-nums;}
+  .bal-input:focus{outline:none;border-bottom-color:var(--gold);}
+  tr.pl-open td{color:var(--muted);}
+  tr.pl-open td:first-child{color:var(--ink);font-weight:600;}
+  tr.pl-total td{border-top:2px solid var(--line-2);background:#faf8f3;font-weight:700;}
   @media(max-width:600px){.add{grid-template-columns:1fr 1fr;}.stats .stat{min-width:45%;}.pts-rate{margin-left:0;}}
 </style>
 </head>
@@ -260,12 +272,27 @@
 
   <!-- POINTS -->
   <section class="view" id="view-points">
-    <div class="card">
-      <div class="head-row">
-        <div><h2>🎯 Points Tracker</h2><p class="sub">Bonvoy points from hotel spend = base 10× + elite bonus + credit-card points.</p></div>
+    <div class="stats">
+      <div class="stat gold">
+        <div class="l">Total Points</div>
+        <div class="v"><input id="pts-balance" class="bal-input" type="number" min="0" step="1000" placeholder="0"></div>
+        <div class="s">current balance — editable</div>
       </div>
+      <div class="stat green">
+        <div class="l">Earned so far</div>
+        <div class="v" id="pts-earned">0</div>
+        <div class="s">completed stays</div>
+      </div>
+      <div class="stat gold">
+        <div class="l">Projected Total</div>
+        <div class="v" id="pts-projtotal">0</div>
+        <div class="s">total + upcoming + promos</div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="pts-ctl">
-        <label>Elite status
+        <label>Default status
           <select id="pts-tier">
             <option value="Silver">Silver (+10%)</option>
             <option value="Gold">Gold (+25%)</option>
@@ -281,18 +308,29 @@
             <option value="none">No Bonvoy card (0×)</option>
           </select>
         </label>
-        <div class="pts-rate" id="pts-rate"></div>
+        <button class="btn" id="pts-ledger-btn" style="margin-left:auto">View Ledger</button>
       </div>
     </div>
-    <div class="stats" id="pts-stats"></div>
+
+    <div class="card">
+      <h2 style="margin-bottom:4px">Upcoming — projected balance</h2>
+      <p class="sub">Toggled-on trips ahead, each adding to your Total Points. Status, rate &amp; spend are editable.</p>
+      <div style="overflow-x:auto"><table id="pts-table"></table></div>
+    </div>
+
     <div class="card">
       <h2 style="margin-bottom:14px">Points breakdown</h2>
       <div id="pts-breakdown"></div>
     </div>
+
     <div class="card">
-      <h2 style="margin-bottom:4px">By stay</h2>
-      <p class="sub">Spend is editable — points recalculate live.</p>
-      <div style="overflow-x:auto"><table id="pts-table"></table></div>
+      <div class="head-row"><div><h2>✨ Bonus &amp; promo points</h2><p class="sub">Welcome bonuses, promotions, or points not tied to a stay.</p></div></div>
+      <div id="promo-list"></div>
+      <div class="add" style="grid-template-columns:2fr 1fr auto;margin-top:14px">
+        <input id="promo-name" placeholder="e.g. Q3 double-points promo">
+        <input id="promo-pts" type="number" min="0" step="500" placeholder="Points">
+        <button class="btn gold" id="promo-add">Add</button>
+      </div>
     </div>
   </section>
 </div>
@@ -303,6 +341,15 @@
     <div class="mh"><h2>📒 Elite Night Ledger</h2><button class="mclose" id="modal-close">✕</button></div>
     <table><thead><tr><th>Status</th><th>Item</th><th class="n">Nights</th><th class="n">Running</th><th class="n">Spend</th></tr></thead>
       <tbody id="ledger-body"></tbody></table>
+  </div>
+</div>
+
+<!-- POINTS LEDGER MODAL (past stays) -->
+<div class="modal-bg" id="pts-modal-bg">
+  <div class="modal">
+    <div class="mh"><h2>🎯 Points Ledger — past stays</h2><button class="mclose" id="pts-modal-close">✕</button></div>
+    <table><thead><tr><th>Stay</th><th>Status</th><th class="n">Spend</th><th class="n">Rate</th><th class="n">Points</th><th class="n">Running</th></tr></thead>
+      <tbody id="pts-hist-body"></tbody></table>
   </div>
 </div>
 
@@ -467,48 +514,88 @@ function renderAmbassador(c){
 }
 
 const P = n => Math.round(n).toLocaleString();
+const TIERS=['Silver','Gold','Platinum','Titanium','Ambassador'];
+function tierOptions(sel){ return TIERS.map(t=>`<option value="${t}" ${t===sel?'selected':''}>${t}</option>`).join(''); }
+
+function ptRow(r, label, chip, runVal){
+  return `<tr>
+    <td>${r.name} <span class="chip ${chip}">${label}</span></td>
+    <td><select class="tier-edit mini-sel" data-editid="${r.id}">${tierOptions(r.tier)}</select></td>
+    <td class="n">$<input class="spend-edit" type="number" min="0" step="50" value="${r.spend}" data-editid="${r.id}"></td>
+    <td class="n"><input class="rate-edit" type="number" min="0" step="1" value="${r.rate}" data-editid="${r.id}"></td>
+    <td class="n">+${P(r.total)}</td>
+    <td class="n rt">${P(runVal)}</td>
+  </tr>`;
+}
+
 function renderPoints(c){
-  const tierPct=TIER_BONUS[PTS.tier], cardMult=CARD_MULT[PTS.card];
+  const cardMult=CARD_MULT[PTS.card];
   $('#pts-tier').value=PTS.tier; $('#pts-card').value=PTS.card;
-  const rate=10*(1+tierPct)+cardMult;
-  $('#pts-rate').innerHTML=`<b>${rate.toLocaleString(undefined,{maximumFractionDigits:1})}</b> pts / $1 <span class="muted">(10 base + ${10*tierPct} elite + ${cardMult} card)</span>`;
+  if(document.activeElement!==$('#pts-balance')) $('#pts-balance').value = PTS.balance||'';
 
-  const rows=[];
-  SECURED.forEach(e=>{ if(e.status==='completed' && Number(e.spend)>0) rows.push({id:e.id,name:e.label,spend:Number(e.spend),phase:'earned'}); });
-  TRIPS.forEach(t=>{ if(t.on && Number(t.spend)>0) rows.push({id:t.id,name:t.name,spend:Number(t.spend),phase:'projected'}); });
-  rows.forEach(r=>{ r.base=r.spend*10; r.elite=Math.round(r.base*tierPct); r.card=r.spend*cardMult; r.total=r.base+r.elite+r.card; });
-  const sum=(k,ph)=>rows.filter(r=>!ph||r.phase===ph).reduce((s,r)=>s+r[k],0);
-  const total=sum('total'), earned=sum('total','earned'), proj=sum('total','projected');
-  const baseT=sum('base'), eliteT=sum('elite'), cardT=sum('card');
+  const build=(arr,phase)=>arr.map(e=>{
+    const tier=e.tier||PTS.tier, rate=(e.rate==null?10:Number(e.rate)), spend=Number(e.spend)||0;
+    const base=spend*rate, elite=Math.round(base*TIER_BONUS[tier]), card=spend*cardMult;
+    return {id:e.id, name:e.name||e.label, spend, tier, rate, base, elite, card, total:base+elite+card, phase};
+  });
+  const earnedRows=build(SECURED.filter(e=>e.status==='completed'&&Number(e.spend)>0),'earned');
+  const projRows=build(TRIPS.filter(t=>t.on&&Number(t.spend)>0),'projected');
+  const rows=earnedRows.concat(projRows);
+  const promos=PTS.promos||[];
+  const promoPts=promos.reduce((s,p)=>s+Number(p.pts||0),0);
+  const sum=(arr,k)=>arr.reduce((s,r)=>s+r[k],0);
+  const earned=sum(earnedRows,'total'), proj=sum(projRows,'total');
+  const baseT=sum(rows,'base'), eliteT=sum(rows,'elite'), cardT=sum(rows,'card');
+  const balance=Number(PTS.balance)||0;
+  const projTotal=balance+proj+promoPts;
+  const totalAccrued=earned+proj+promoPts;
 
-  $('#pts-stats').innerHTML=[
-    {l:'Total Points', v:P(total), s:`${PTS.tier} · ${CARD_LABEL[PTS.card]}`, cls:'gold'},
-    {l:'Earned so far', v:P(earned), s:'completed stays', cls:'green'},
-    {l:'Projected', v:P(proj), s:'upcoming trips (on)', cls:'blue'},
-    {l:'Effective rate', v:rate.toLocaleString(undefined,{maximumFractionDigits:1}), s:'points per $1', cls:''},
-  ].map(x=>`<div class="stat ${x.cls}"><div class="l">${x.l}</div><div class="v ${String(x.v).length>7?'sm':''}">${x.v}</div><div class="s">${x.s}</div></div>`).join('');
+  // three stat values (Total Points is a static, settable input)
+  $('#pts-earned').textContent=P(earned);
+  $('#pts-projtotal').textContent=P(projTotal);
 
-  const maxB=Math.max(1,baseT,eliteT,cardT);
-  const bd=[{l:'Base points (10×)',v:baseT,c:'var(--gold)'},{l:`Elite bonus (+${Math.round(tierPct*100)}%)`,v:eliteT,c:'#46c79a'},{l:`Credit-card points (${CARD_LABEL[PTS.card]})`,v:cardT,c:'#5aa6f0'}];
+  // breakdown
+  const bd=[{l:'Base points',v:baseT,c:'var(--gold)'},{l:'Elite bonus',v:eliteT,c:'#46c79a'},{l:`Credit-card points (${CARD_LABEL[PTS.card]})`,v:cardT,c:'#5aa6f0'}];
+  if(promoPts>0) bd.push({l:'Bonus / promo points',v:promoPts,c:'#b07ef0'});
+  const maxB=Math.max(1,...bd.map(b=>b.v));
   $('#pts-breakdown').innerHTML=bd.map(b=>`
     <div style="margin-bottom:14px">
       <div class="lp-row"><span class="l">${b.l}</span><span class="r">${P(b.v)}</span></div>
       <div class="lp"><div class="f" style="width:${(b.v/maxB)*100}%;background:${b.c}"></div></div>
-    </div>`).join('')+`<div class="lp-row" style="margin-top:8px;font-weight:800"><span>Total accrued</span><span style="color:var(--gold)">${P(total)} pts</span></div>`;
+    </div>`).join('')+`<div class="lp-row" style="margin-top:8px;font-weight:800"><span>Total accrued</span><span style="color:var(--gold)">${P(totalAccrued)} pts</span></div>`;
 
-  const head=`<thead><tr><th>Stay</th><th class="n">Spend</th><th class="n">Base</th><th class="n">Elite</th><th class="n">Card</th><th class="n">Points</th></tr></thead>`;
-  const body=rows.length? rows.map(r=>`<tr>
-      <td>${r.name} <span class="chip ${r.phase==='earned'?'c-completed':'c-planned'}">${r.phase==='earned'?'Earned':'Projected'}</span></td>
-      <td class="n">$<input class="spend-edit pts-spend" type="number" min="0" step="50" value="${r.spend}" data-editid="${r.id}"></td>
-      <td class="n">${P(r.base)}</td><td class="n">${P(r.elite)}</td><td class="n">${P(r.card)}</td><td class="n rt">${P(r.total)}</td></tr>`).join('')
-    : `<tr><td colspan="6" style="color:var(--faint);padding:14px">No stays with spend yet — add spend to a stay or toggle on a trip.</td></tr>`;
-  $('#pts-table').innerHTML=head+`<tbody>${body}</tbody>`;
+  // promos list
+  $('#promo-list').innerHTML = promos.length
+    ? promos.map(p=>`<div class="promo-row"><div class="pn">${p.label}</div><div class="pp">${P(p.pts)} pts</div><button class="trip-trash" data-promodel="${p.id}">✕</button></div>`).join('')
+    : '<p class="sub" style="margin:0">No bonus or promo points added yet.</p>';
+  $('#promo-list').querySelectorAll('[data-promodel]').forEach(b=>b.addEventListener('click',e=>{
+    PTS.promos=(PTS.promos||[]).filter(p=>p.id!==e.target.dataset.promodel); render();
+  }));
+
+  // ---- Upcoming ledger (on screen): running projected balance from Total Points ----
+  const ledHead=`<thead><tr><th>Item</th><th>Status</th><th class="n">Spend</th><th class="n">Rate</th><th class="n">Points</th><th class="n">Balance</th></tr></thead>`;
+  let run=balance;
+  let up=`<tr class="pl-open"><td>Current balance</td><td></td><td class="n"></td><td class="n"></td><td class="n">—</td><td class="n rt">${P(run)}</td></tr>`;
+  projRows.forEach(r=>{ run+=r.total; up+=ptRow(r,'Upcoming','c-planned',run); });
+  promos.forEach(p=>{ run+=Number(p.pts||0); up+=`<tr><td>✨ ${p.label} <span class="chip c-promo">Promo</span></td><td></td><td class="n"></td><td class="n"></td><td class="n">+${P(p.pts)}</td><td class="n rt">${P(run)}</td></tr>`; });
+  if(projRows.length===0&&promos.length===0) up+=`<tr><td colspan="6" style="color:var(--faint);padding:12px">No upcoming trips toggled on — toggle trips in Status Tracker, or add promo points above.</td></tr>`;
+  up+=`<tr class="pl-total"><td>Projected balance</td><td></td><td></td><td></td><td></td><td class="n rt">${P(run)}</td></tr>`;
+  $('#pts-table').innerHTML=ledHead+`<tbody>${up}</tbody>`;
+
+  // ---- Past ledger (modal): running earned ----
+  let er=0;
+  $('#pts-hist-body').innerHTML = earnedRows.length
+    ? earnedRows.map(r=>{ er+=r.total; return ptRow(r,'Earned','c-completed',er); }).join('')
+      + `<tr class="pl-total"><td>Total earned</td><td></td><td></td><td></td><td></td><td class="n rt" style="color:var(--green)">${P(er)}</td></tr>`
+    : `<tr><td colspan="6" style="color:var(--faint);padding:12px">No completed stays with spend yet.</td></tr>`;
 }
 
-function setSpend(id,val){
+function setField(id, field, val){
   const e=SECURED.find(x=>x.id===id)||TRIPS.find(x=>x.id===id);
   if(!e) return;
-  e.spend=Number(val)||0;
+  if(field==='spend') e.spend=Number(val)||0;
+  else if(field==='rate') e.rate=(val===''?10:Number(val));
+  else e[field]=val;   // tier
   render();
   if($('#modal-bg').classList.contains('open')) renderLedger();
 }
@@ -542,11 +629,26 @@ $('#tabs').addEventListener('click',e=>{ if(e.target.tagName==='BUTTON') activat
 $('#amb-back').addEventListener('click',()=>activateTab('projection'));
 $('#pts-tier').addEventListener('change',e=>{ PTS.tier=e.target.value; render(); });
 $('#pts-card').addEventListener('change',e=>{ PTS.card=e.target.value; render(); });
-// unified spend editing across ledger + points table
-document.addEventListener('change',e=>{ if(e.target.classList && e.target.classList.contains('spend-edit')) setSpend(e.target.dataset.editid, e.target.value); });
+$('#pts-balance').addEventListener('input',e=>{ PTS.balance=Number(e.target.value)||0; savePts(); render(); });
+$('#promo-add').addEventListener('click',()=>{
+  const label=$('#promo-name').value.trim(), pts=Number($('#promo-pts').value)||0;
+  if(!label||!pts) return;
+  PTS.promos=PTS.promos||[]; PTS.promos.push({id:'pr'+Date.now(),label,pts});
+  $('#promo-name').value=''; $('#promo-pts').value=''; render();
+});
+// unified per-stay editing across ledger + points table (spend / status / base rate)
+document.addEventListener('change',e=>{
+  const t=e.target; if(!t.dataset||!t.dataset.editid) return;
+  if(t.classList.contains('spend-edit')) setField(t.dataset.editid,'spend',t.value);
+  else if(t.classList.contains('tier-edit')) setField(t.dataset.editid,'tier',t.value);
+  else if(t.classList.contains('rate-edit')) setField(t.dataset.editid,'rate',t.value);
+});
 $('#ledger-btn').addEventListener('click',()=>{ renderLedger(); $('#modal-bg').classList.add('open'); });
 $('#modal-close').addEventListener('click',()=>$('#modal-bg').classList.remove('open'));
 $('#modal-bg').addEventListener('click',e=>{ if(e.target.id==='modal-bg') $('#modal-bg').classList.remove('open'); });
+$('#pts-ledger-btn').addEventListener('click',()=>$('#pts-modal-bg').classList.add('open'));
+$('#pts-modal-close').addEventListener('click',()=>$('#pts-modal-bg').classList.remove('open'));
+$('#pts-modal-bg').addEventListener('click',e=>{ if(e.target.id==='pts-modal-bg') $('#pts-modal-bg').classList.remove('open'); });
 $('#t-add').addEventListener('click',()=>{
   const name=$('#t-name').value.trim(); if(!name)return;
   TRIPS.push({id:'u'+Date.now(),status:'planned',name,nights:Number($('#t-nights').value)||1,spend:Number($('#t-spend').value)||0,on:true});
