@@ -178,7 +178,7 @@
   table{width:100%;border-collapse:collapse;font-size:12.5px;}
   thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:700;padding:9px 14px;border-bottom:1px solid var(--line);position:sticky;top:57px;background:var(--card);}
   tbody td{padding:9px 14px;border-bottom:1px solid #f1eee6;}
-  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .rt{font-weight:700;color:var(--gold);}
   .chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;}
   .c-completed{background:#eaf7ef;color:#2faa6f;}
@@ -187,7 +187,18 @@
   .c-promo{background:#f3edfb;color:#8a5fc0;}
   .c-creditcard{background:#eef0f8;color:#5a6bb0;}
   .c-choice{background:#e8f7f5;color:#1f9d8b;}
-  @media(max-width:600px){.add{grid-template-columns:1fr 1fr;}.stats .stat{min-width:45%;}}
+  .muted{color:var(--muted);}
+  /* points */
+  .pts-ctl{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
+  .pts-ctl label{display:flex;flex-direction:column;gap:5px;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:700;}
+  .pts-ctl select{background:#faf8f3;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;color:var(--ink);min-width:180px;font-weight:600;text-transform:none;letter-spacing:0;}
+  .pts-ctl select:focus{outline:none;border-color:var(--gold);}
+  .pts-rate{margin-left:auto;font-size:12.5px;color:var(--muted);background:var(--gold-soft);border:1px solid #ecdcb3;border-radius:10px;padding:9px 14px;}
+  .pts-rate b{color:var(--gold);font-size:16px;}
+  #pts-table thead th{position:static;}
+  .spend-edit{width:82px;background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;}
+  .spend-edit:focus{outline:none;border-color:var(--gold);background:#fff;}
+  @media(max-width:600px){.add{grid-template-columns:1fr 1fr;}.stats .stat{min-width:45%;}.pts-rate{margin-left:0;}}
 </style>
 </head>
 <body>
@@ -199,6 +210,7 @@
 
   <nav class="tabs" id="tabs">
     <button data-tab="projection" class="active">Status Tracker</button>
+    <button data-tab="points">Points</button>
   </nav>
 
   <!-- PROJECTION -->
@@ -245,6 +257,44 @@
       <div id="amb-verdict"></div>
     </div>
   </section>
+
+  <!-- POINTS -->
+  <section class="view" id="view-points">
+    <div class="card">
+      <div class="head-row">
+        <div><h2>🎯 Points Tracker</h2><p class="sub">Bonvoy points from hotel spend = base 10× + elite bonus + credit-card points.</p></div>
+      </div>
+      <div class="pts-ctl">
+        <label>Elite status
+          <select id="pts-tier">
+            <option value="Silver">Silver (+10%)</option>
+            <option value="Gold">Gold (+25%)</option>
+            <option value="Platinum">Platinum (+50%)</option>
+            <option value="Titanium">Titanium (+75%)</option>
+            <option value="Ambassador">Ambassador (+75%)</option>
+          </select>
+        </label>
+        <label>Paying card
+          <select id="pts-card">
+            <option value="brilliant">Bonvoy Brilliant (6×)</option>
+            <option value="business">Bonvoy Business (6×)</option>
+            <option value="none">No Bonvoy card (0×)</option>
+          </select>
+        </label>
+        <div class="pts-rate" id="pts-rate"></div>
+      </div>
+    </div>
+    <div class="stats" id="pts-stats"></div>
+    <div class="card">
+      <h2 style="margin-bottom:14px">Points breakdown</h2>
+      <div id="pts-breakdown"></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-bottom:4px">By stay</h2>
+      <p class="sub">Spend is editable — points recalculate live.</p>
+      <div style="overflow-x:auto"><table id="pts-table"></table></div>
+    </div>
+  </section>
 </div>
 
 <!-- LEDGER MODAL -->
@@ -261,21 +311,33 @@ const AMB_SPEND = 23000;
 const money = n => '$'+Number(n||0).toLocaleString();
 function statusFor(n){ if(n>=100)return'Ambassador'; if(n>=75)return'Titanium'; if(n>=50)return'Platinum'; if(n>=25)return'Gold'; if(n>=10)return'Silver'; return'Member'; }
 
-// Secured ledger = nights you already hold (61). Read-only history.
-const SECURED = [
-  {status:'creditcard', label:'Bonvoy Brilliant (+25 ENC)', nights:25, spend:0},
-  {status:'creditcard', label:'Bonvoy Business (+15 ENC)', nights:15, spend:0},
-  {status:'completed', label:'Ritz-Carlton Half Moon Bay · Mar 21–23', nights:2, spend:0},
-  {status:'promo', label:'Promotional Elite Night Credit', nights:1, spend:0},
-  {status:'completed', label:'Ritz-Carlton Dallas Las Colinas · May 20–21', nights:1, spend:0},
-  {status:'completed', label:'Renaissance Dallas · May 23–24', nights:1, spend:0},
-  {status:'completed', label:'Renaissance Austin · May 24–25', nights:1, spend:0},
-  {status:'completed', label:'Renaissance Austin · May 25–28', nights:3, spend:0},
-  {status:'choice', label:'50-Night Choice Benefit (+5 ENC)', nights:5, spend:0},
-  {status:'completed', label:'Courtyard NYC Central Park · May 31–Jun 7', nights:7, spend:0},
-];
-const SECURED_NIGHTS = SECURED.reduce((s,e)=>s+e.nights,0); // 61
-const SECURED_SPEND  = SECURED.reduce((s,e)=>s+e.spend,0);
+// Secured ledger = nights you already hold (61). Completed-stay spend is editable & persisted;
+// hotel-stay spends below are pre-filled ESTIMATES you can adjust.
+function defaultSecured(){return[
+  {id:'cc1', status:'creditcard', label:'Bonvoy Brilliant (+25 ENC)', nights:25, spend:0, editable:false},
+  {id:'cc2', status:'creditcard', label:'Bonvoy Business (+15 ENC)', nights:15, spend:0, editable:false},
+  {id:'s1',  status:'completed',  label:'Ritz-Carlton Half Moon Bay · Mar 21–23', nights:2, spend:3000, editable:true},
+  {id:'p1',  status:'promo',      label:'Promotional Elite Night Credit', nights:1, spend:0, editable:false},
+  {id:'s2',  status:'completed',  label:'Ritz-Carlton Dallas Las Colinas · May 20–21', nights:1, spend:400, editable:true},
+  {id:'s3',  status:'completed',  label:'Renaissance Dallas · May 23–24', nights:1, spend:250, editable:true},
+  {id:'s4',  status:'completed',  label:'Renaissance Austin · May 24–25', nights:1, spend:250, editable:true},
+  {id:'s5',  status:'completed',  label:'Renaissance Austin · May 25–28', nights:3, spend:750, editable:true},
+  {id:'ch1', status:'choice',     label:'50-Night Choice Benefit (+5 ENC)', nights:5, spend:0, editable:false},
+  {id:'s6',  status:'completed',  label:'Courtyard NYC Central Park · May 31–Jun 7', nights:7, spend:2450, editable:true},
+];}
+let SECURED = loadSecured();
+function loadSecured(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_secured_v1'));if(Array.isArray(s)&&s.length)return s;}catch(e){} return defaultSecured(); }
+function saveSecured(){ localStorage.setItem('bonvoy_secured_v1', JSON.stringify(SECURED)); }
+const securedNights = ()=>SECURED.reduce((s,e)=>s+Number(e.nights||0),0); // 61
+const securedSpend  = ()=>SECURED.reduce((s,e)=>s+Number(e.spend||0),0);
+
+// ---- Points model ----
+const TIER_BONUS={Silver:0.10,Gold:0.25,Platinum:0.50,Titanium:0.75,Ambassador:0.75};
+const CARD_MULT={brilliant:6,business:6,none:0};
+const CARD_LABEL={brilliant:'Brilliant 6×',business:'Business 6×',none:'No card'};
+let PTS = loadPts();
+function loadPts(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_pts_v1'));if(s&&s.tier)return s;}catch(e){} return {tier:'Platinum',card:'brilliant'}; }
+function savePts(){ localStorage.setItem('bonvoy_pts_v1', JSON.stringify(PTS)); }
 
 function defaultTrips(){return[
   {id:'b1', status:'booked',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:0,    on:true},
@@ -296,15 +358,15 @@ function calc(){
   const onTrips = TRIPS.filter(t=>t.on);
   const tripNights = onTrips.reduce((s,t)=>s+Number(t.nights||0),0);
   const tripSpend  = onTrips.reduce((s,t)=>s+Number(t.spend||0),0);
-  const baseProjected = SECURED_NIGHTS + tripNights;   // before the 75-night benefit
+  const baseProjected = securedNights() + tripNights;   // before the 75-night benefit
   const bonus75 = baseProjected >= 75 ? 5 : 0;          // +5 ENC unlocked at 75 projected nights
   return {
-    current: SECURED_NIGHTS,
+    current: securedNights(),
     baseProjected,
     bonus75,
     projected: baseProjected + bonus75,
-    securedSpend: SECURED_SPEND,
-    projectedSpend: SECURED_SPEND + tripSpend,
+    securedSpend: securedSpend(),
+    projectedSpend: securedSpend() + tripSpend,
   };
 }
 
@@ -326,7 +388,8 @@ function render(){
   renderTrack(c);
   renderTrips(c);
   renderAmbassador(c);
-  save();
+  renderPoints(c);
+  save(); saveSecured(); savePts();
 }
 
 function renderTrack(c){
@@ -403,20 +466,70 @@ function renderAmbassador(c){
   $('#amb-verdict').innerHTML=`<div class="verdict ${v.cls}" style="margin-top:18px"><div class="ic">${v.ic}</div><div><div class="t">${v.t}</div><div class="d">${v.d}</div></div></div>`;
 }
 
+const P = n => Math.round(n).toLocaleString();
+function renderPoints(c){
+  const tierPct=TIER_BONUS[PTS.tier], cardMult=CARD_MULT[PTS.card];
+  $('#pts-tier').value=PTS.tier; $('#pts-card').value=PTS.card;
+  const rate=10*(1+tierPct)+cardMult;
+  $('#pts-rate').innerHTML=`<b>${rate.toLocaleString(undefined,{maximumFractionDigits:1})}</b> pts / $1 <span class="muted">(10 base + ${10*tierPct} elite + ${cardMult} card)</span>`;
+
+  const rows=[];
+  SECURED.forEach(e=>{ if(e.status==='completed' && Number(e.spend)>0) rows.push({id:e.id,name:e.label,spend:Number(e.spend),phase:'earned'}); });
+  TRIPS.forEach(t=>{ if(t.on && Number(t.spend)>0) rows.push({id:t.id,name:t.name,spend:Number(t.spend),phase:'projected'}); });
+  rows.forEach(r=>{ r.base=r.spend*10; r.elite=Math.round(r.base*tierPct); r.card=r.spend*cardMult; r.total=r.base+r.elite+r.card; });
+  const sum=(k,ph)=>rows.filter(r=>!ph||r.phase===ph).reduce((s,r)=>s+r[k],0);
+  const total=sum('total'), earned=sum('total','earned'), proj=sum('total','projected');
+  const baseT=sum('base'), eliteT=sum('elite'), cardT=sum('card');
+
+  $('#pts-stats').innerHTML=[
+    {l:'Total Points', v:P(total), s:`${PTS.tier} · ${CARD_LABEL[PTS.card]}`, cls:'gold'},
+    {l:'Earned so far', v:P(earned), s:'completed stays', cls:'green'},
+    {l:'Projected', v:P(proj), s:'upcoming trips (on)', cls:'blue'},
+    {l:'Effective rate', v:rate.toLocaleString(undefined,{maximumFractionDigits:1}), s:'points per $1', cls:''},
+  ].map(x=>`<div class="stat ${x.cls}"><div class="l">${x.l}</div><div class="v ${String(x.v).length>7?'sm':''}">${x.v}</div><div class="s">${x.s}</div></div>`).join('');
+
+  const maxB=Math.max(1,baseT,eliteT,cardT);
+  const bd=[{l:'Base points (10×)',v:baseT,c:'var(--gold)'},{l:`Elite bonus (+${Math.round(tierPct*100)}%)`,v:eliteT,c:'#46c79a'},{l:`Credit-card points (${CARD_LABEL[PTS.card]})`,v:cardT,c:'#5aa6f0'}];
+  $('#pts-breakdown').innerHTML=bd.map(b=>`
+    <div style="margin-bottom:14px">
+      <div class="lp-row"><span class="l">${b.l}</span><span class="r">${P(b.v)}</span></div>
+      <div class="lp"><div class="f" style="width:${(b.v/maxB)*100}%;background:${b.c}"></div></div>
+    </div>`).join('')+`<div class="lp-row" style="margin-top:8px;font-weight:800"><span>Total accrued</span><span style="color:var(--gold)">${P(total)} pts</span></div>`;
+
+  const head=`<thead><tr><th>Stay</th><th class="n">Spend</th><th class="n">Base</th><th class="n">Elite</th><th class="n">Card</th><th class="n">Points</th></tr></thead>`;
+  const body=rows.length? rows.map(r=>`<tr>
+      <td>${r.name} <span class="chip ${r.phase==='earned'?'c-completed':'c-planned'}">${r.phase==='earned'?'Earned':'Projected'}</span></td>
+      <td class="n">$<input class="spend-edit pts-spend" type="number" min="0" step="50" value="${r.spend}" data-editid="${r.id}"></td>
+      <td class="n">${P(r.base)}</td><td class="n">${P(r.elite)}</td><td class="n">${P(r.card)}</td><td class="n rt">${P(r.total)}</td></tr>`).join('')
+    : `<tr><td colspan="6" style="color:var(--faint);padding:14px">No stays with spend yet — add spend to a stay or toggle on a trip.</td></tr>`;
+  $('#pts-table').innerHTML=head+`<tbody>${body}</tbody>`;
+}
+
+function setSpend(id,val){
+  const e=SECURED.find(x=>x.id===id)||TRIPS.find(x=>x.id===id);
+  if(!e) return;
+  e.spend=Number(val)||0;
+  render();
+  if($('#modal-bg').classList.contains('open')) renderLedger();
+}
+
 function renderLedger(){
   let rt=0;
-  const secRows = SECURED.map(e=>{ rt+=e.nights; return row(e.status,e.label,e.nights,rt,e.spend); }).join('');
+  const secRows = SECURED.map(e=>{ rt+=e.nights; return row(e.status,e.label,e.nights,rt,e.spend,e.editable?e.id:null); }).join('');
   const c = calc();
-  let tripRows = TRIPS.filter(t=>t.on).map(t=>{ rt+=Number(t.nights); return row(t.status,t.name,t.nights,rt,t.spend); }).join('');
-  if(c.bonus75){ rt+=c.bonus75; tripRows += row('choice','75-Night Choice Benefit (+5 ENC)',c.bonus75,rt,0); }
+  let tripRows = TRIPS.filter(t=>t.on).map(t=>{ rt+=Number(t.nights); return row(t.status,t.name,t.nights,rt,t.spend,t.id); }).join('');
+  if(c.bonus75){ rt+=c.bonus75; tripRows += row('choice','75-Night Choice Benefit (+5 ENC)',c.bonus75,rt,0,null); }
   $('#ledger-body').innerHTML = secRows +
     `<tr><td colspan="5" style="padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:700;background:#faf8f3;">Projected trips (toggled on)</td></tr>` +
     (tripRows||`<tr><td colspan="5" style="color:var(--faint);padding:12px 14px;">No trips toggled on.</td></tr>`);
 }
-function row(status,label,nights,rt,spend){
+function row(status,label,nights,rt,spend,editId){
   const names={completed:'Completed',booked:'Booked',planned:'Planned',promo:'Promo',creditcard:'Credit Card',choice:'Choice'};
+  const spendCell = (editId!=null)
+    ? `$<input class="spend-edit lg-spend" type="number" min="0" step="50" value="${spend||0}" data-editid="${editId}">`
+    : (spend?money(spend):'—');
   return `<tr><td><span class="chip c-${status}">${names[status]}</span></td><td>${label}</td>
-    <td class="n">+${nights}</td><td class="n rt">${rt}</td><td class="n">${spend?money(spend):'—'}</td></tr>`;
+    <td class="n">+${nights}</td><td class="n rt">${rt}</td><td class="n">${spendCell}</td></tr>`;
 }
 
 // events
@@ -427,6 +540,10 @@ function activateTab(tab){
 }
 $('#tabs').addEventListener('click',e=>{ if(e.target.tagName==='BUTTON') activateTab(e.target.dataset.tab); });
 $('#amb-back').addEventListener('click',()=>activateTab('projection'));
+$('#pts-tier').addEventListener('change',e=>{ PTS.tier=e.target.value; render(); });
+$('#pts-card').addEventListener('change',e=>{ PTS.card=e.target.value; render(); });
+// unified spend editing across ledger + points table
+document.addEventListener('change',e=>{ if(e.target.classList && e.target.classList.contains('spend-edit')) setSpend(e.target.dataset.editid, e.target.value); });
 $('#ledger-btn').addEventListener('click',()=>{ renderLedger(); $('#modal-bg').classList.add('open'); });
 $('#modal-close').addEventListener('click',()=>$('#modal-bg').classList.remove('open'));
 $('#modal-bg').addEventListener('click',e=>{ if(e.target.id==='modal-bg') $('#modal-bg').classList.remove('open'); });
