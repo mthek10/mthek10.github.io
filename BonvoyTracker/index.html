@@ -70,6 +70,11 @@
   .stat.green .v{color:var(--green);}
   .stat.blue .v{color:var(--blue);}
   .stat .v.sm{font-size:18px;}
+  .stat.expandable{cursor:pointer;transition:.15s;display:flex;flex-direction:column;}
+  .stat.expandable:hover{border-color:var(--gold);box-shadow:0 6px 18px rgba(189,142,53,.16);}
+  .tile-expand{margin-top:12px;align-self:flex-start;background:var(--gold-soft);border:1px solid #ecdcb3;color:var(--gold);
+    font-size:10.5px;font-weight:700;padding:5px 11px;border-radius:999px;cursor:pointer;transition:.15s;letter-spacing:.2px;}
+  .tile-expand:hover{background:linear-gradient(150deg,var(--gold-2),var(--gold));color:#fff;border-color:transparent;}
 
   /* projection bar */
   .track-wrap{margin:30px 4px 8px;}
@@ -190,7 +195,7 @@
   </header>
 
   <nav class="tabs" id="tabs">
-    <button data-tab="projection" class="active">Projection</button>
+    <button data-tab="projection" class="active">Status Tracker</button>
     <button data-tab="ambassador">Ambassador</button>
   </nav>
 
@@ -309,8 +314,11 @@ function render(){
     {l:'Current Nights', v:c.current, s:statusFor(c.current), cls:'gold'},
     {l:'Projected Nights', v:c.projected, s:statusFor(c.projected), cls:'gold'},
     {l:'To Titanium (75)', v:Math.max(0,75-c.projected), s:c.projected>=75?'reached':'nights to go', cls:'blue'},
-    {l:'To Ambassador (100)', v:Math.max(0,100-c.projected), s:c.projected>=100?'reached':'nights to go', cls:''},
-  ].map(x=>`<div class="stat ${x.cls}"><div class="l">${x.l}</div><div class="v">${x.v}</div><div class="s">${x.s}</div></div>`).join('');
+    {l:'To Ambassador (100)', v:Math.max(0,100-c.projected), s:c.projected>=100?'reached':'nights to go', cls:'', expand:true},
+  ].map(x=>`<div class="stat ${x.cls} ${x.expand?'expandable':''}" ${x.expand?'data-expand="ambassador"':''}>
+      <div class="l">${x.l}</div><div class="v">${x.v}</div><div class="s">${x.s}</div>
+      ${x.expand?'<button class="tile-expand" data-expand="ambassador" title="Open Ambassador tracker">Ambassador&nbsp;⤢</button>':''}</div>`).join('');
+  document.querySelectorAll('[data-expand]').forEach(el=>el.addEventListener('click',e=>{ e.stopPropagation(); activateTab('ambassador'); }));
 
   renderTrack(c);
   renderTrips(c);
@@ -409,11 +417,12 @@ function row(status,label,nights,rt,spend){
 }
 
 // events
-$('#tabs').addEventListener('click',e=>{
-  if(e.target.tagName!=='BUTTON')return;
-  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b===e.target));
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+e.target.dataset.tab));
-});
+function activateTab(tab){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+tab));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+$('#tabs').addEventListener('click',e=>{ if(e.target.tagName==='BUTTON') activateTab(e.target.dataset.tab); });
 $('#ledger-btn').addEventListener('click',()=>{ renderLedger(); $('#modal-bg').classList.add('open'); });
 $('#modal-close').addEventListener('click',()=>$('#modal-bg').classList.remove('open'));
 $('#modal-bg').addEventListener('click',e=>{ if(e.target.id==='modal-bg') $('#modal-bg').classList.remove('open'); });
