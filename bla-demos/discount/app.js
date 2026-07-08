@@ -490,7 +490,7 @@
     state = PBX.clone(SEED);
     selected = {};
     initLineState();
-    $("discount-value").value = "5";
+    $("discount-value").value = "";
     $("discount-form").hidden = true;
     renderChrome();
     renderCart();

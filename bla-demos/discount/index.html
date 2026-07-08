@@ -86,16 +86,11 @@
               <button class="btn-omobo-out" id="btn-add-promo">Add Promo Code</button>
             </div>
 
-            <!-- Order discount — fixed % presets only (revealed by the buttons above) -->
+            <!-- Order discount — whole-number % input (value reads as a plain number) -->
             <div class="disc-form" id="discount-form" hidden>
               <div class="field">
-                <label for="discount-value">Order discount</label>
-                <select id="discount-value" data-pbx-field="discount-value">
-                  <option value="5">5%</option>
-                  <option value="10">10%</option>
-                  <option value="15">15%</option>
-                  <option value="20">20%</option>
-                </select>
+                <label for="discount-value">Order discount (%)</label>
+                <input id="discount-value" type="number" data-pbx-field="discount-value" min="0" max="100" step="1" placeholder="e.g. 10" />
               </div>
               <button class="btn primary" id="btn-apply-discount" data-pbx-action="apply-discount" style="margin-top: 6px">
                 Apply Discount
@@ -233,6 +228,6 @@
 
     <script src="../common/pbx-contract.js"></script>
     <script src="data.js"></script>
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
   </body>
 </html>
