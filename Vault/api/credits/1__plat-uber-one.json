@@ -1,0 +1,1 @@
+{"credit":{"id":"plat-uber-one","name":"Uber One membership","cap_amount":120,"cadence":"annual_anniversary","reset_anchor":"anniversary","enrollment_required":true,"credit_type":"statement_credit","notes":"$120 per membership year, anniversary-anchored.","match":{"merchant_patterns":["uber one"],"confidence":0.9},"card_id":"amex-platinum"},"allocations":[],"periods":[]}

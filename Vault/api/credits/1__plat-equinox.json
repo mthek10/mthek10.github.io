@@ -1,0 +1,1 @@
+{"credit":{"id":"plat-equinox","name":"Equinox","cap_amount":300,"cadence":"annual_calendar","reset_anchor":"calendar","enrollment_required":true,"credit_type":"statement_credit","notes":"Equinox club or Equinox+ app.","match":{"merchant_patterns":["equinox"],"confidence":0.95},"card_id":"amex-platinum"},"allocations":[],"periods":[]}
