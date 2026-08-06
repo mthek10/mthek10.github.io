@@ -467,6 +467,21 @@ body {
 .tiercap-note strong {
   color: var(--text);
 }
+.applied-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  padding: 8px 11px;
+  background: #f4f4f4;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.applied-note strong {
+  color: var(--text);
+}
+.applied-note[hidden] {
+  display: none;
+}
 .action-btns {
   display: flex;
   gap: 12px;

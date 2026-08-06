@@ -161,6 +161,22 @@
     $("tot-tax").textContent = PBX.formatMoney(TAX);
     $("tot-order-total").textContent = PBX.formatMoney(orderTotal);
     $("tot-amount-due").textContent = PBX.formatMoney(orderTotal);
+    renderAppliedDiscount();
+  }
+
+  // Cart Actions: show the currently applied order discount %.
+  function renderAppliedDiscount() {
+    var el = $("applied-discount");
+    if (!el) return;
+    var pct = state.order.discountPct || 0;
+    if (pct > 0) {
+      el.innerHTML = "Order discount applied: <strong>" + pct + "%</strong>" +
+        (state.order.promoCode ? ' · <span class="mono">' + state.order.promoCode + "</span>" : "");
+      el.hidden = false;
+    } else {
+      el.textContent = "";
+      el.hidden = true;
+    }
   }
 
   // --- Live context (baseline; apply functions pass their own detail) ---
