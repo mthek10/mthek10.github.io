@@ -67,7 +67,6 @@
   function renderChrome() {
     $("case-id").textContent = state.case.id;
     $("athlete-name").textContent = state.agent.name;
-    $("tier-cap").textContent = state.agent.tierCapPct + "%";
     $("cust-name").textContent = state.customer.name;
     $("cust-email").textContent = state.customer.email;
     $("cust-member").textContent = state.customer.memberId;
@@ -208,8 +207,47 @@
     if (!PBX.dispatchBefore("pbx:beforeApply", detail)) return; // mod blocked
 
     state.order.discountPct = pct; // REPLACE the single order discount
+    state.order.promoCode = null;
     state.customer.codesInWindow += 1;
     $("discount-form").hidden = true;
+    renderCart();
+    renderTotals();
+    syncContext();
+  }
+
+  // --- Cart Actions: promo code (first two digits of the code = % off cart) ---
+  function promoPctFromCode(code) {
+    var digits = (code || "").replace(/\D/g, ""); // "HFH-50OFF" -> "50"
+    return parseInt(digits.slice(0, 2), 10) || 0; // first two digits -> 50
+  }
+  function applyPromo() {
+    var code = ($("promo-code").value || "").trim();
+    var pct = promoPctFromCode(code);
+    var before = merchTotal();
+    var after = merchTotalWith(pct);
+    var orderDiscAmt = state.order.lineItems.reduce(function (s, li) {
+      return s + (li.overridePrice != null ? 0 : lineGross(li) * (pct / 100));
+    }, 0);
+    var detail = {
+      agentTierCapPct: state.agent.tierCapPct,
+      scope: "promo",
+      promoCode: code,
+      targetLine: null,
+      discountPct: round2(pct),
+      discountAmt: round2(orderDiscAmt),
+      orderTotalBefore: round2(before),
+      orderTotalAfter: round2(after),
+      customerCodesInWindow: state.customer.codesInWindow,
+      hasGiftCardLine: hasGiftCardLine(),
+    };
+    syncContext(detail);
+
+    if (!PBX.dispatchBefore("pbx:beforeApply", detail)) return; // mod blocked
+
+    state.order.discountPct = pct; // promo sets the single order-level discount
+    state.order.promoCode = code;
+    state.customer.codesInWindow += 1;
+    $("promo-form").hidden = true;
     renderCart();
     renderTotals();
     syncContext();
@@ -266,10 +304,18 @@
     btn.disabled = n === 0;
   }
 
-  // --- Cart Actions order-discount form reveal ---
+  // --- Cart Actions form reveals (order discount vs promo code) ---
   function showOrderDiscountForm() {
     document.querySelectorAll(".item-disc").forEach(function (x) { x.hidden = true; });
+    $("promo-form").hidden = true;
     $("discount-form").hidden = false;
+    syncContext();
+  }
+  function showPromoForm() {
+    document.querySelectorAll(".item-disc").forEach(function (x) { x.hidden = true; });
+    $("discount-form").hidden = true;
+    $("promo-form").hidden = false;
+    $("promo-code").focus();
     syncContext();
   }
 
@@ -291,10 +337,11 @@
 
   // --- Wiring (event-delegated where rows re-render) ---
   function wire() {
-    // Cart Actions buttons both reveal the order % discount form
+    // Cart Actions buttons
     $("btn-add-discount").addEventListener("click", showOrderDiscountForm);
-    $("btn-add-promo").addEventListener("click", showOrderDiscountForm);
+    $("btn-add-promo").addEventListener("click", showPromoForm);
     $("btn-apply-discount").addEventListener("click", applyOrderDiscount);
+    $("btn-apply-promo").addEventListener("click", applyPromo);
 
     // Delegated cart interactions
     $("line-items").addEventListener("click", function (e) {
@@ -492,6 +539,8 @@
     initLineState();
     $("discount-value").value = "";
     $("discount-form").hidden = true;
+    $("promo-code").value = "";
+    $("promo-form").hidden = true;
     renderChrome();
     renderCart();
     renderTotals();

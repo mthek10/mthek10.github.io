@@ -80,7 +80,6 @@
         <div class="omobo-card">
           <div class="sec-head"><h2>Cart Actions</h2></div>
           <div class="sec-pad">
-            <div class="tiercap-note">Agent tier cap: <strong id="tier-cap">20%</strong></div>
             <div class="action-btns">
               <button class="btn-omobo-out" id="btn-add-discount">Add Discount</button>
               <button class="btn-omobo-out" id="btn-add-promo">Add Promo Code</button>
@@ -94,6 +93,17 @@
               </div>
               <button class="btn primary" id="btn-apply-discount" data-pbx-action="apply-discount" style="margin-top: 6px">
                 Apply Discount
+              </button>
+            </div>
+
+            <!-- Promo code — the first two digits of the code = % off cart total -->
+            <div class="disc-form" id="promo-form" hidden>
+              <div class="field">
+                <label for="promo-code">Promo code</label>
+                <input id="promo-code" type="text" data-pbx-field="promo-code" placeholder="e.g. HFH-50OFF" autocomplete="off" />
+              </div>
+              <button class="btn primary" id="btn-apply-promo" data-pbx-action="apply-promo" style="margin-top: 6px">
+                Apply Code
               </button>
             </div>
           </div>
@@ -228,6 +238,6 @@
 
     <script src="../common/pbx-contract.js"></script>
     <script src="data.js"></script>
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=7"></script>
   </body>
 </html>
