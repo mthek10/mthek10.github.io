@@ -104,8 +104,8 @@ window.PBX_DEMO.data = {
       id: "AD-789",
       customer: {
         id: "C-6690",
-        name: "Jordan Blake",
-        email: "jblake.athletics@outlook.com",
+        name: "Mark Thekkethala",
+        email: "mark.thekkethala@gmail.com",
         memberId: "7391026654",
         codesInWindow: 6,
       },
