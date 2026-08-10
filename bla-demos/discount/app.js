@@ -107,7 +107,43 @@
   }
   function openOrder(seedOrder) {
     loadOrder(seedOrder);
+    navigateToOrder(seedOrder.id);
     showView("cart");
+  }
+
+  // --- URL routing: each open order gets its own path /orders/<id> ---
+  // Uses the History API so PixieBrix's navigation trigger can match /orders/*
+  // and (e.g.) redirect back out to the index.
+  var ORDER_BASE = (function () {
+    var p = location.pathname.replace(/index\.html$/, "").replace(/orders\/[^/]*\/?$/, "");
+    if (p.charAt(p.length - 1) !== "/") p += "/";
+    return p; // e.g. /bla-demos/discount/  (or /discount/ locally)
+  })();
+  function orderUrl(id) { return ORDER_BASE + "orders/" + String(id).toLowerCase(); }
+  function navigateToOrder(id) {
+    var url = orderUrl(id);
+    if (location.pathname !== url) history.pushState({ order: id }, "", url);
+  }
+  function navigateToIndex() {
+    if (location.pathname !== ORDER_BASE) history.pushState({}, "", ORDER_BASE);
+  }
+  // Open the order named in the URL (/orders/<id>) — deep link / back-forward.
+  function openFromUrl() {
+    var m = location.pathname.match(/orders\/([^/]+)\/?$/);
+    if (m) {
+      var seed = findSeedOrder(m[1]);
+      if (seed) { loadOrder(seed); showView("cart"); return true; }
+    }
+    return false;
+  }
+  // The /orders/<id> path is one level deeper, so make the switcher links
+  // absolute (from the parent of the app folder) so they keep working.
+  function fixSwitcherLinks() {
+    var parent = ORDER_BASE.replace(/[^/]+\/$/, "");
+    document.querySelectorAll(".bla-switcher a").forEach(function (a) {
+      var href = a.getAttribute("href");
+      if (href && href.indexOf("../") === 0) a.setAttribute("href", parent + href.slice(3));
+    });
   }
   function findOrder() {
     var id = ($("order-lookup-input").value || "").trim();
@@ -462,7 +498,7 @@
 
     // Order lookup stage
     $("btn-find-order").addEventListener("click", findOrder);
-    $("btn-new-order").addEventListener("click", function () { loadNewOrder(); showView("cart"); });
+    $("btn-new-order").addEventListener("click", function () { loadNewOrder(); navigateToOrder(state.order.id); showView("cart"); });
     $("order-lookup-input").addEventListener("keydown", function (e) {
       if (e.key === "Enter") findOrder();
     });
@@ -472,12 +508,12 @@
       var seed = findSeedOrder(btn.getAttribute("data-order-id"));
       if (seed) openOrder(seed);
     });
-    $("back-to-lookup").addEventListener("click", function () { showView("lookup"); });
+    $("back-to-lookup").addEventListener("click", function () { navigateToIndex(); showView("lookup"); });
 
     // Checkout / shipping-address step
     $("btn-checkout").addEventListener("click", openCheckout);
     $("back-to-cart").addEventListener("click", openCartFromCheckout);
-    $("confirm-back").addEventListener("click", function () { showView("lookup"); });
+    $("confirm-back").addEventListener("click", function () { navigateToIndex(); showView("lookup"); });
     $("btn-place-order").addEventListener("click", placeOrder);
     document.querySelectorAll(".addr-chip").forEach(function (c) {
       c.addEventListener("click", function () { fillAddress(c.getAttribute("data-addr")); });
@@ -641,14 +677,26 @@
     $("lookup-hint").textContent = "Enter an order number, or pick one below.";
     renderOrderList();
     loadOrder(SEED.orders[0]); // reload the default order fresh
-    // Start over at the order-lookup stage
+    // Start over at the order-lookup stage (URL back to the index)
+    navigateToIndex();
     showView("lookup");
   });
   PBX.wireResetButton("btn-reset");
 
+  // Back/forward between order URLs and the index.
+  window.addEventListener("popstate", function () {
+    var m = location.pathname.match(/orders\/([^/]+)\/?$/);
+    if (m) {
+      var seed = findSeedOrder(m[1]);
+      if (seed) { loadOrder(seed); showView("cart"); return; }
+    }
+    showView("lookup");
+  });
+
   // --- Init ---
   wire();
+  fixSwitcherLinks();
   renderOrderList();
   loadOrder(SEED.orders[0]); // load a default order so renders are valid
-  showView("lookup"); // but open on the order-lookup stage
+  if (!openFromUrl()) showView("lookup"); // deep-link /orders/<id>, else lookup
 })();
