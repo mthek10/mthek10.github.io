@@ -608,6 +608,73 @@ body {
   transform: translateY(1px);
 }
 
+/* =============== Order lookup (first stage) =============== */
+.lookup-wrap {
+  max-width: 540px;
+  margin: 44px auto;
+  padding: 0 28px 60px;
+}
+#lookup-view .cart-title {
+  margin-bottom: 22px;
+}
+.lookup-card {
+  padding: 30px 32px 32px;
+}
+.lookup-card .field {
+  margin-bottom: 18px;
+}
+.lookup-card .field label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.lookup-card .field input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid #c9c9c9;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+}
+.lookup-card .field input:focus-visible {
+  outline: none;
+  border-color: var(--adi-black);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.12);
+}
+.btn-omobo-out.block {
+  width: 100%;
+}
+.lookup-divider {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  margin: 16px 0;
+}
+.lookup-divider::before,
+.lookup-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+.lookup-divider span {
+  padding: 0 12px;
+}
+.lookup-hint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 16px;
+  text-align: center;
+}
+.cart-topbar {
+  max-width: 1320px;
+  margin: 22px auto 0;
+  padding: 0 28px;
+}
+
 /* =============== Checkout (shipping address) =============== */
 .checkout-wrap {
   max-width: 960px;

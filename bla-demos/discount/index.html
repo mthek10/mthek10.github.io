@@ -6,7 +6,7 @@
     <title>adidas Order Desk — View Cart</title>
     <link rel="stylesheet" href="../common/switcher.css?v=1" />
     <link rel="stylesheet" href="../common/console.css" />
-    <link rel="stylesheet" href="theme.css?v=6" />
+    <link rel="stylesheet" href="theme.css?v=7" />
   </head>
   <body>
     <nav class="bla-switcher">
@@ -38,8 +38,29 @@
     <!-- Mod renders modals/banners here -->
     <div id="pbx-overlay-root"></div>
 
+    <!-- ============ ORDER LOOKUP VIEW (first stage) ============ -->
+    <div id="lookup-view" hidden>
+      <div class="lookup-wrap">
+        <h1 class="cart-title">Order Lookup</h1>
+        <div class="omobo-card lookup-card">
+          <div class="field">
+            <label for="order-lookup-input">Order number</label>
+            <input id="order-lookup-input" type="text" data-pbx-field="order-number" placeholder="e.g. AD-77310" autocomplete="off" />
+          </div>
+          <button class="btn-omobo-primary block" id="btn-find-order" data-pbx-action="find-order">FIND ORDER</button>
+          <div class="lookup-divider"><span>or</span></div>
+          <button class="btn-omobo-out block" id="btn-new-order" data-pbx-action="new-order">+ New Order</button>
+          <div class="lookup-hint" id="lookup-hint">Enter an order number, or start a new order.</div>
+        </div>
+      </div>
+    </div>
+    <!-- ============ /ORDER LOOKUP VIEW ============ -->
+
     <!-- ============ CART VIEW ============ -->
     <div id="cart-view">
+    <div class="cart-topbar">
+      <a class="back-link" id="back-to-lookup">‹ Order lookup</a>
+    </div>
     <div class="omobo-body">
       <!-- Cart column -->
       <main>
@@ -239,6 +260,6 @@
 
     <script src="../common/pbx-contract.js"></script>
     <script src="data.js"></script>
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
   </body>
 </html>

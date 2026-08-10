@@ -400,10 +400,18 @@
       syncContext();
     });
 
+    // Order lookup stage → current order (View Cart)
+    $("btn-find-order").addEventListener("click", function () { showView("cart"); });
+    $("btn-new-order").addEventListener("click", function () { showView("cart"); });
+    $("order-lookup-input").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") showView("cart");
+    });
+    $("back-to-lookup").addEventListener("click", function () { showView("lookup"); });
+
     // Checkout / shipping-address step
     $("btn-checkout").addEventListener("click", openCheckout);
     $("back-to-cart").addEventListener("click", openCartFromCheckout);
-    $("confirm-back").addEventListener("click", openCartFromCheckout);
+    $("confirm-back").addEventListener("click", function () { showView("lookup"); });
     $("btn-place-order").addEventListener("click", placeOrder);
     document.querySelectorAll(".addr-chip").forEach(function (c) {
       c.addEventListener("click", function () { fillAddress(c.getAttribute("data-addr")); });
@@ -462,6 +470,7 @@
   }
 
   function showView(name) {
+    $("lookup-view").hidden = name !== "lookup";
     $("cart-view").hidden = name !== "cart";
     $("checkout-view").hidden = name !== "checkout";
     $("confirm-view").hidden = name !== "confirm";
@@ -567,7 +576,9 @@
       if (el) el.value = "";
     });
     document.querySelectorAll(".addr-chip").forEach(function (c) { c.classList.remove("active"); });
-    showView("cart");
+    $("order-lookup-input").value = "";
+    // Start over at the order-lookup stage
+    showView("lookup");
   });
   PBX.wireResetButton("btn-reset");
 
@@ -578,4 +589,5 @@
   renderTotals();
   wire();
   syncContext();
+  showView("lookup"); // open on the order-lookup stage
 })();
