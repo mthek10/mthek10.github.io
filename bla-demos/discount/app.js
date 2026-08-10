@@ -70,6 +70,71 @@
     $("cust-name").textContent = state.customer.name;
     $("cust-email").textContent = state.customer.email;
     $("cust-member").textContent = state.customer.memberId;
+    var oid = $("current-order-id");
+    if (oid && state.order) oid.textContent = "Order " + state.order.id;
+  }
+
+  // --- Order loading (multi-order lookup) ---
+  var newOrderSeq = 900;
+  function findSeedOrder(id) {
+    var q = (id || "").trim().toLowerCase();
+    return (SEED.orders || []).find(function (o) { return o.id.toLowerCase() === q; });
+  }
+  function loadOrder(seedOrder) {
+    state.order = {
+      id: seedOrder.id,
+      discountPct: 0,
+      promoCode: null,
+      lineItems: PBX.clone(seedOrder.lineItems),
+    };
+    if (seedOrder.customer) state.customer = PBX.clone(seedOrder.customer); // order's owner
+    selected = {};
+    initLineState();
+    renderChrome();
+    renderCart();
+    renderTotals();
+    syncContext();
+  }
+  function loadNewOrder() {
+    state.order = { id: "AD-" + ++newOrderSeq, discountPct: 0, promoCode: null, lineItems: [] };
+    state.customer = PBX.clone(SEED.customer); // default profile for a brand-new order
+    selected = {};
+    initLineState();
+    renderChrome();
+    renderCart();
+    renderTotals();
+    syncContext();
+  }
+  function openOrder(seedOrder) {
+    loadOrder(seedOrder);
+    showView("cart");
+  }
+  function findOrder() {
+    var id = ($("order-lookup-input").value || "").trim();
+    var seed = findSeedOrder(id);
+    if (seed) {
+      openOrder(seed);
+    } else {
+      $("lookup-hint").textContent = id
+        ? 'No order found for "' + id + '". Try AD-123, AD-456, or AD-789.'
+        : "Enter an order number, or pick one below.";
+    }
+  }
+  function renderOrderList() {
+    var el = $("order-list");
+    if (!el) return;
+    el.innerHTML = (SEED.orders || [])
+      .map(function (o) {
+        var count = o.lineItems.length;
+        var total = o.lineItems.reduce(function (s, li) { return s + li.unitPrice * li.qty; }, 0);
+        var who = o.customer ? o.customer.name : "";
+        return '<button type="button" class="order-row" data-order-id="' + o.id + '">' +
+          '<span class="or-main"><span class="or-id">' + o.id + "</span>" +
+          (who ? '<span class="or-who">' + who + "</span>" : "") + "</span>" +
+          '<span class="or-meta">' + count + " item" + (count !== 1 ? "s" : "") + " · " + PBX.formatMoney(total) + "</span>" +
+          "</button>";
+      })
+      .join("");
   }
 
   // --- Cart rows ---
@@ -400,11 +465,17 @@
       syncContext();
     });
 
-    // Order lookup stage → current order (View Cart)
-    $("btn-find-order").addEventListener("click", function () { showView("cart"); });
-    $("btn-new-order").addEventListener("click", function () { showView("cart"); });
+    // Order lookup stage
+    $("btn-find-order").addEventListener("click", findOrder);
+    $("btn-new-order").addEventListener("click", function () { loadNewOrder(); showView("cart"); });
     $("order-lookup-input").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") showView("cart");
+      if (e.key === "Enter") findOrder();
+    });
+    $("order-list").addEventListener("click", function (e) {
+      var btn = e.target.closest(".order-row");
+      if (!btn) return;
+      var seed = findSeedOrder(btn.getAttribute("data-order-id"));
+      if (seed) openOrder(seed);
     });
     $("back-to-lookup").addEventListener("click", function () { showView("lookup"); });
 
@@ -479,13 +550,13 @@
 
   function fillAddress(which) {
     var a = which === "recent" ? state.fraudAddresses[0] : state.shipping.onFile;
-    $("ship-name").value = a.name || state.customer.name;
+    $("ship-name").value = state.customer.name; // match the current order's owner
     $("ship-street").value = a.street || "";
     $("ship-apt").value = a.apt || "";
     $("ship-city").value = a.city || "";
     $("ship-state").value = a.state || "CA";
     $("ship-zip").value = a.zip || "";
-    $("ship-email").value = a.email || state.customer.email;
+    $("ship-email").value = state.customer.email;
     $("ship-phone").value = a.phone || state.shipping.onFile.phone;
     document.querySelectorAll(".addr-chip").forEach(function (c) {
       c.classList.toggle("active", c.getAttribute("data-addr") === which);
@@ -561,33 +632,28 @@
   PBX.onReset(function () {
     state = PBX.clone(SEED);
     selected = {};
-    initLineState();
     $("discount-value").value = "";
     $("discount-form").hidden = true;
     $("promo-code").value = "";
     $("promo-form").hidden = true;
-    renderChrome();
-    renderCart();
-    renderTotals();
-    syncContext();
-    // Return to cart view and clear the checkout address fields
+    // Clear the checkout address fields
     ["ship-name", "ship-street", "ship-apt", "ship-city", "ship-zip", "ship-email", "ship-phone"].forEach(function (id) {
       var el = $(id);
       if (el) el.value = "";
     });
     document.querySelectorAll(".addr-chip").forEach(function (c) { c.classList.remove("active"); });
     $("order-lookup-input").value = "";
+    $("lookup-hint").textContent = "Enter an order number, or pick one below.";
+    renderOrderList();
+    loadOrder(SEED.orders[0]); // reload the default order fresh
     // Start over at the order-lookup stage
     showView("lookup");
   });
   PBX.wireResetButton("btn-reset");
 
   // --- Init ---
-  initLineState();
-  renderChrome();
-  renderCart();
-  renderTotals();
   wire();
-  syncContext();
-  showView("lookup"); // open on the order-lookup stage
+  renderOrderList();
+  loadOrder(SEED.orders[0]); // load a default order so renders are valid
+  showView("lookup"); // but open on the order-lookup stage
 })();

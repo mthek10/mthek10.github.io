@@ -6,7 +6,7 @@
     <title>adidas Order Desk — View Cart</title>
     <link rel="stylesheet" href="../common/switcher.css?v=1" />
     <link rel="stylesheet" href="../common/console.css" />
-    <link rel="stylesheet" href="theme.css?v=7" />
+    <link rel="stylesheet" href="theme.css?v=9" />
   </head>
   <body>
     <nav class="bla-switcher">
@@ -45,12 +45,18 @@
         <div class="omobo-card lookup-card">
           <div class="field">
             <label for="order-lookup-input">Order number</label>
-            <input id="order-lookup-input" type="text" data-pbx-field="order-number" placeholder="e.g. AD-77310" autocomplete="off" />
+            <input id="order-lookup-input" type="text" data-pbx-field="order-number" placeholder="e.g. AD-123" autocomplete="off" />
           </div>
           <button class="btn-omobo-primary block" id="btn-find-order" data-pbx-action="find-order">FIND ORDER</button>
+          <div class="lookup-hint" id="lookup-hint">Enter an order number, or pick one below.</div>
+
+          <div class="lookup-orders">
+            <div class="lookup-orders-label">Recent orders</div>
+            <div id="order-list"></div>
+          </div>
+
           <div class="lookup-divider"><span>or</span></div>
           <button class="btn-omobo-out block" id="btn-new-order" data-pbx-action="new-order">+ New Order</button>
-          <div class="lookup-hint" id="lookup-hint">Enter an order number, or start a new order.</div>
         </div>
       </div>
     </div>
@@ -60,6 +66,7 @@
     <div id="cart-view">
     <div class="cart-topbar">
       <a class="back-link" id="back-to-lookup">‹ Order lookup</a>
+      <span class="current-order" id="current-order-id"></span>
     </div>
     <div class="omobo-body">
       <!-- Cart column -->
@@ -259,7 +266,7 @@
     <div id="pbx-audit-root"></div>
 
     <script src="../common/pbx-contract.js"></script>
-    <script src="data.js"></script>
-    <script src="app.js?v=9"></script>
+    <script src="data.js?v=3"></script>
+    <script src="app.js?v=11"></script>
   </body>
 </html>
