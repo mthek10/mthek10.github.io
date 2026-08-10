@@ -125,13 +125,8 @@
     if (!el) return;
     el.innerHTML = (SEED.orders || [])
       .map(function (o) {
-        var count = o.lineItems.length;
-        var total = o.lineItems.reduce(function (s, li) { return s + li.unitPrice * li.qty; }, 0);
-        var who = o.customer ? o.customer.name : "";
         return '<button type="button" class="order-row" data-order-id="' + o.id + '">' +
-          '<span class="or-main"><span class="or-id">' + o.id + "</span>" +
-          (who ? '<span class="or-who">' + who + "</span>" : "") + "</span>" +
-          '<span class="or-meta">' + count + " item" + (count !== 1 ? "s" : "") + " · " + PBX.formatMoney(total) + "</span>" +
+          '<span class="or-id">' + o.id + "</span>" +
           "</button>";
       })
       .join("");
