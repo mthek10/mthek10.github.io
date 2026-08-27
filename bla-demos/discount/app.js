@@ -332,6 +332,10 @@
     var digits = (code || "").replace(/\D/g, ""); // "HFH-50OFF" -> "50"
     return parseInt(digits.slice(0, 2), 10) || 0; // first two digits -> 50
   }
+  // Disable Apply Code until a promo code is entered.
+  function validatePromo() {
+    $("btn-apply-promo").disabled = ($("promo-code").value || "").trim() === "";
+  }
   function applyPromo() {
     var code = ($("promo-code").value || "").trim();
     var pct = promoPctFromCode(code);
@@ -428,6 +432,7 @@
     $("discount-form").hidden = true;
     $("promo-form").hidden = false;
     $("promo-code").focus();
+    validatePromo();
     syncContext();
   }
 
@@ -454,6 +459,7 @@
     $("btn-add-promo").addEventListener("click", showPromoForm);
     $("btn-apply-discount").addEventListener("click", applyOrderDiscount);
     $("btn-apply-promo").addEventListener("click", applyPromo);
+    $("promo-code").addEventListener("input", validatePromo);
 
     // Delegated cart interactions
     $("line-items").addEventListener("click", function (e) {
@@ -667,6 +673,7 @@
     $("discount-form").hidden = true;
     $("promo-code").value = "";
     $("promo-form").hidden = true;
+    validatePromo();
     // Clear the checkout address fields
     ["ship-name", "ship-street", "ship-apt", "ship-city", "ship-zip", "ship-email", "ship-phone"].forEach(function (id) {
       var el = $(id);
@@ -697,6 +704,7 @@
   wire();
   fixSwitcherLinks();
   renderOrderList();
+  validatePromo(); // Apply Code disabled until a code is typed
   loadOrder(SEED.orders[0]); // load a default order so renders are valid
   if (!openFromUrl()) showView("lookup"); // deep-link /orders/<id>, else lookup
 })();
