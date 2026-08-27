@@ -127,12 +127,24 @@
   function navigateToIndex() {
     if (location.pathname !== ORDER_BASE) history.pushState({}, "", ORDER_BASE);
   }
-  // Open the order named in the URL (/orders/<id>) — deep link / back-forward.
+  // Extract an order id from the current path — handles /orders/<id>,
+  // /orders/<id>/ and /orders/<id>/index.html (the static refresh fallback).
+  function orderIdFromPath() {
+    var p = location.pathname.replace(/index\.html$/, "").replace(/\/$/, "");
+    var m = p.match(/orders\/([^/]+)$/);
+    return m ? m[1] : null;
+  }
+  // Open the order named in the URL (/orders/<id>) — deep link / refresh.
   function openFromUrl() {
-    var m = location.pathname.match(/orders\/([^/]+)\/?$/);
-    if (m) {
-      var seed = findSeedOrder(m[1]);
-      if (seed) { loadOrder(seed); showView("cart"); return true; }
+    var id = orderIdFromPath();
+    if (id) {
+      var seed = findSeedOrder(id);
+      if (seed) {
+        loadOrder(seed);
+        history.replaceState({ order: seed.id }, "", orderUrl(seed.id)); // clean URL
+        showView("cart");
+        return true;
+      }
     }
     return false;
   }
@@ -692,9 +704,9 @@
 
   // Back/forward between order URLs and the index.
   window.addEventListener("popstate", function () {
-    var m = location.pathname.match(/orders\/([^/]+)\/?$/);
-    if (m) {
-      var seed = findSeedOrder(m[1]);
+    var id = orderIdFromPath();
+    if (id) {
+      var seed = findSeedOrder(id);
       if (seed) { loadOrder(seed); showView("cart"); return; }
     }
     showView("lookup");
