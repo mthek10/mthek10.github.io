@@ -366,6 +366,9 @@ function loadPts(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_pts_v1')
 function savePts(){ localStorage.setItem('bonvoy_pts_v1', JSON.stringify(PTS)); }
 
 function defaultTrips(){return[
+  {id:'pismo',      status:'booked', name:'Pismo Beach · Sep 5–7',                  nights:2, spend:400,  on:true},
+  {id:'stregis_pm', status:'booked', name:'St. Regis Punta Mita · Sep 12–14',       nights:2, spend:500,  on:true},
+  {id:'siari',      status:'booked', name:'Siari Ritz-Carlton Reserve · Sep 14–17', nights:3, spend:3500, on:true},
   {id:'b1', status:'booked',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:0,    on:true},
   {id:'b2', status:'booked',  name:'Chiang Mai Marriott · Nov 20–22',      nights:2, spend:1000, on:true},
   {id:'b3', status:'booked',  name:'Phulay Bay Ritz Reserve · Nov 22–24',  nights:2, spend:2000, on:true},
@@ -377,7 +380,20 @@ function defaultTrips(){return[
 ];}
 
 let TRIPS = load();
-function load(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_v2'));if(Array.isArray(s)&&s.length)return s;}catch(e){} return defaultTrips(); }
+function load(){
+  let trips=null;
+  try{const s=JSON.parse(localStorage.getItem('bonvoy_v2'));if(Array.isArray(s)&&s.length)trips=s;}catch(e){}
+  if(!trips) trips=defaultTrips();
+  // one-time migration: fold the Sept 2026 trips into already-saved data
+  try{
+    if(localStorage.getItem('bonvoy_mig_sept2026')!=='1'){
+      defaultTrips().filter(d=>['pismo','stregis_pm','siari'].includes(d.id))
+        .forEach(n=>{ if(!trips.some(t=>t.id===n.id)) trips.push(n); });
+      localStorage.setItem('bonvoy_mig_sept2026','1');
+    }
+  }catch(e){}
+  return trips;
+}
 function save(){ localStorage.setItem('bonvoy_v2', JSON.stringify(TRIPS)); }
 
 function calc(){
