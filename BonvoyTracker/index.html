@@ -375,7 +375,7 @@ function defaultTrips(){return[
   {id:'b4', status:'booked',  name:'Mandapa Ritz Reserve · Nov 27–30',     nights:3, spend:3000, on:true},
   {id:'b5', status:'planned', name:'Ritz-Carlton Bangkok · Nov 24–27',     nights:3, spend:1500, on:true},
   {id:'h2', status:'planned', name:'Mark Birthday · October',              nights:3, spend:1200, on:false},
-  {id:'h3', status:'planned', name:'December Vacation',                    nights:7, spend:3500, on:false},
+  {id:'h3', status:'planned', name:'December Vacation',                    nights:3, spend:5000, on:false},
 ];}
 
 let TRIPS = load();
@@ -394,6 +394,11 @@ function load(){
     if(localStorage.getItem('bonvoy_mig_rm_bridget')!=='1'){
       trips=trips.filter(t=>t.id!=='h1');
       localStorage.setItem('bonvoy_mig_rm_bridget','1');
+    }
+    // one-time: December Vacation is 3 nights / $5,000
+    if(localStorage.getItem('bonvoy_mig_dec3n')!=='1'){
+      const d=trips.find(t=>t.id==='h3'); if(d){ d.nights=3; d.spend=5000; }
+      localStorage.setItem('bonvoy_mig_dec3n','1');
     }
   }catch(e){}
   return trips;
