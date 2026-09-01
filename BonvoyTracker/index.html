@@ -374,7 +374,6 @@ function defaultTrips(){return[
   {id:'b3', status:'booked',  name:'Phulay Bay Ritz Reserve · Nov 22–24',  nights:2, spend:2000, on:true},
   {id:'b4', status:'booked',  name:'Mandapa Ritz Reserve · Nov 27–30',     nights:3, spend:3000, on:true},
   {id:'b5', status:'planned', name:'Ritz-Carlton Bangkok · Nov 24–27',     nights:3, spend:1500, on:true},
-  {id:'h1', status:'planned', name:'Bridget Birthday · September',         nights:3, spend:1200, on:false},
   {id:'h2', status:'planned', name:'Mark Birthday · October',              nights:3, spend:1200, on:false},
   {id:'h3', status:'planned', name:'December Vacation',                    nights:7, spend:3500, on:false},
 ];}
@@ -390,6 +389,11 @@ function load(){
       defaultTrips().filter(d=>['pismo','stregis_pm','siari'].includes(d.id))
         .forEach(n=>{ if(!trips.some(t=>t.id===n.id)) trips.push(n); });
       localStorage.setItem('bonvoy_mig_sept2026','1');
+    }
+    // one-time: remove Bridget Birthday (h1) — it's the Pismo Beach trip now
+    if(localStorage.getItem('bonvoy_mig_rm_bridget')!=='1'){
+      trips=trips.filter(t=>t.id!=='h1');
+      localStorage.setItem('bonvoy_mig_rm_bridget','1');
     }
   }catch(e){}
   return trips;
