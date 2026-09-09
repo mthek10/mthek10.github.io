@@ -399,7 +399,7 @@ function defaultTrips(){return[
   {id:'h2', status:'planned', name:'Mark Birthday · October',              nights:3, spend:1200, on:false},
   {id:'dance', status:'booked', name:'Dance Contest (Mom) · Dec 10–13',    nights:3, spend:600,  on:true},
   {id:'santafe',      status:'planned', name:'Santa Fe (Fish) · Dec 24–27', nights:3, spend:1500, on:false},
-  {id:'santafe_thek', status:'planned', name:'Santa Fe (Thek) · Dec 27–30', nights:3, spend:0,    on:false},
+  {id:'santafe_thek', status:'planned', name:'California (Thek) · Dec 27–30', nights:3, spend:0,  on:false},
 ];}
 
 let TRIPS = load();
@@ -453,6 +453,11 @@ function load(){
       const th=defaultTrips().find(t=>t.id==='santafe_thek');
       if(th && !trips.some(t=>t.id==='santafe_thek')) trips.push(th);
       localStorage.setItem('bonvoy_mig_dec_santafe','1');
+    }
+    // one-time: Dec 27–30 (Thek) is California, not Santa Fe
+    if(localStorage.getItem('bonvoy_mig_thek_ca')!=='1'){
+      const t=trips.find(x=>x.id==='santafe_thek'); if(t) t.name='California (Thek) · Dec 27–30';
+      localStorage.setItem('bonvoy_mig_thek_ca','1');
     }
   }catch(e){}
   return trips;
