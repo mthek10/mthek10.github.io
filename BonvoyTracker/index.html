@@ -188,6 +188,9 @@
   .c-creditcard{background:#eef0f8;color:#5a6bb0;}
   .c-choice{background:#e8f7f5;color:#1f9d8b;}
   .muted{color:var(--muted);}
+  .qual-ctl{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin:-6px 0 18px;}
+  .qual-ctl input{width:96px;background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:12.5px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .qual-ctl input:focus{outline:none;border-color:var(--gold);}
   /* points */
   .pts-ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;}
   .pts-ctl label{display:flex;flex-direction:column;gap:7px;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);font-weight:700;}
@@ -245,8 +248,10 @@
     </div>
 
     <div class="card">
-      <h2>✈️ Trips</h2>
-      <p class="sub">Toggle trips on or off to update the projection. Add your own below.</p>
+      <div class="head-row">
+        <div><h2>✈️ Trips</h2><p class="sub">Toggle trips on or off to update the projection. Add your own below.</p></div>
+        <button class="btn" id="reset-btn" title="Clear saved edits and reload the built-in defaults">Reset to defaults</button>
+      </div>
       <div id="trip-list"></div>
       <div class="add">
         <input id="t-name" placeholder="Trip / hotel" />
@@ -267,6 +272,7 @@
       <div class="lp"><div class="f" id="amb-n-f" style="background:var(--gold)"></div><div class="p" id="amb-n-p"></div></div>
       <div class="lp-row"><span>Qualifying Spend</span><span class="r" id="amb-s-lab"></span></div>
       <div class="lp"><div class="f" id="amb-s-f" style="background:var(--green)"></div><div class="p" id="amb-s-p"></div></div>
+      <div class="qual-ctl"><span>Qualifying spend to date (actual)</span><span>$<input id="amb-qual" type="number" min="0" step="100"></span></div>
       <div id="amb-breakdown"></div>
       <div id="amb-verdict"></div>
     </div>
@@ -348,12 +354,29 @@ function defaultSecured(){return[
   {id:'s5',  status:'completed',  label:'Renaissance Austin · May 25–28', nights:3, spend:750, editable:true},
   {id:'ch1', status:'choice',     label:'50-Night Choice Benefit (+5 ENC)', nights:5, spend:0, editable:false},
   {id:'s6',  status:'completed',  label:'Courtyard NYC Central Park · May 31–Jun 7', nights:7, spend:2450, editable:true},
+  {id:'s7',  status:'completed',  label:'Vespera Resort Pismo Beach · Sep 5–7', nights:2, spend:400, editable:true},
 ];}
 let SECURED = loadSecured();
-function loadSecured(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_secured_v1'));if(Array.isArray(s)&&s.length)return s;}catch(e){} return defaultSecured(); }
+function loadSecured(){
+  let sec=null;
+  try{const s=JSON.parse(localStorage.getItem('bonvoy_secured_v1'));if(Array.isArray(s)&&s.length)sec=s;}catch(e){}
+  if(!sec) sec=defaultSecured();
+  // one-time: fold in the now-completed Vespera Pismo Beach stay
+  try{
+    if(localStorage.getItem('bonvoy_mig_vespera')!=='1'){
+      const v=defaultSecured().find(e=>e.id==='s7');
+      if(v && !sec.some(e=>e.id==='s7')) sec.push(v);
+      localStorage.setItem('bonvoy_mig_vespera','1');
+    }
+  }catch(e){}
+  return sec;
+}
 function saveSecured(){ localStorage.setItem('bonvoy_secured_v1', JSON.stringify(SECURED)); }
-const securedNights = ()=>SECURED.reduce((s,e)=>s+Number(e.nights||0),0); // 61
+const securedNights = ()=>SECURED.reduce((s,e)=>s+Number(e.nights||0),0);
 const securedSpend  = ()=>SECURED.reduce((s,e)=>s+Number(e.spend||0),0);
+// Qualifying spend to date (authoritative actual; editable on the Ambassador tab)
+let QUAL = (()=>{ const v=localStorage.getItem('bonvoy_qual_v1'); return v!==null?Number(v):6695; })();
+function saveQual(){ localStorage.setItem('bonvoy_qual_v1', String(QUAL)); }
 
 // ---- Points model ----
 const TIER_BONUS={Silver:0.10,Gold:0.25,Platinum:0.50,Titanium:0.75,Ambassador:0.75};
@@ -366,7 +389,6 @@ function loadPts(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_pts_v1')
 function savePts(){ localStorage.setItem('bonvoy_pts_v1', JSON.stringify(PTS)); }
 
 function defaultTrips(){return[
-  {id:'pismo',      status:'booked', name:'Pismo Beach · Sep 5–7',                  nights:2, spend:400,  on:true},
   {id:'stregis_pm', status:'booked', name:'St. Regis Punta Mita · Sep 12–14',       nights:2, spend:500,  on:true},
   {id:'siari',      status:'booked', name:'Siari Ritz-Carlton Reserve · Sep 14–17', nights:3, spend:3500, on:true},
   {id:'b1', status:'booked',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:0,    on:true},
@@ -377,6 +399,7 @@ function defaultTrips(){return[
   {id:'h2', status:'planned', name:'Mark Birthday · October',              nights:3, spend:1200, on:false},
   {id:'h3', status:'planned', name:'December Vacation',                    nights:3, spend:5000, on:false},
   {id:'dance', status:'booked', name:'Dance Contest (Mom) · Dec 10–13',    nights:3, spend:600,  on:true},
+  {id:'santafe', status:'planned', name:'Santa Fe (potential) · December', nights:4, spend:1500, on:false},
 ];}
 
 let TRIPS = load();
@@ -412,6 +435,17 @@ function load(){
       const d=trips.find(t=>t.id==='b5'); if(d) d.status='booked';
       localStorage.setItem('bonvoy_mig_bkk_booked','1');
     }
+    // one-time: Pismo Beach is past — remove from upcoming trips (now in completed history)
+    if(localStorage.getItem('bonvoy_mig_pismo_done')!=='1'){
+      trips=trips.filter(t=>t.id!=='pismo');
+      localStorage.setItem('bonvoy_mig_pismo_done','1');
+    }
+    // one-time: add Santa Fe (potential) trip
+    if(localStorage.getItem('bonvoy_mig_santafe')!=='1'){
+      const d=defaultTrips().find(t=>t.id==='santafe');
+      if(d && !trips.some(t=>t.id==='santafe')) trips.push(d);
+      localStorage.setItem('bonvoy_mig_santafe','1');
+    }
   }catch(e){}
   return trips;
 }
@@ -428,8 +462,8 @@ function calc(){
     baseProjected,
     bonus75,
     projected: baseProjected + bonus75,
-    securedSpend: securedSpend(),
-    projectedSpend: securedSpend() + tripSpend,
+    securedSpend: QUAL,
+    projectedSpend: QUAL + tripSpend,
   };
 }
 
@@ -498,6 +532,7 @@ function renderTrips(c){
 }
 
 function renderAmbassador(c){
+  if(document.activeElement!==$('#amb-qual')) $('#amb-qual').value=QUAL;
   const nightPct=Math.min(100,(c.projected/100)*100), curNightPct=Math.min(100,(c.current/100)*100);
   const spendPct=Math.min(100,(c.projectedSpend/AMB_SPEND)*100), curSpendPct=Math.min(100,(c.securedSpend/AMB_SPEND)*100);
   $('#amb-stats').innerHTML=[
@@ -516,7 +551,7 @@ function renderAmbassador(c){
   // spend breakdown — where projected spend comes from
   const onTrips=TRIPS.filter(t=>t.on);
   let bd='';
-  if(c.securedSpend>0) bd+=`<div class="bd-row"><span>Secured stays</span><span>${money(c.securedSpend)}</span></div>`;
+  if(c.securedSpend>0) bd+=`<div class="bd-row"><span>Qualifying spend to date</span><span>${money(c.securedSpend)}</span></div>`;
   onTrips.forEach(t=>{ bd+=`<div class="bd-row ${t.spend?'':'zero'}"><span>${t.name}</span><span>${money(t.spend)}</span></div>`; });
   if(!onTrips.length && c.securedSpend===0) bd=`<div class="bd-row zero"><span>No projected trips turned on</span><span>—</span></div>`;
   $('#amb-breakdown').innerHTML=`<div class="bd"><div class="bd-h">Projected spend from trips turned on</div>${bd}
@@ -631,6 +666,13 @@ function activateTab(tab){
 $('#tabs').addEventListener('click',e=>{ if(e.target.tagName==='BUTTON') activateTab(e.target.dataset.tab); });
 $('#amb-back').addEventListener('click',()=>activateTab('projection'));
 $('#pts-balance').addEventListener('input',e=>{ PTS.balance=Number(e.target.value)||0; savePts(); render(); });
+$('#amb-qual').addEventListener('input',e=>{ QUAL=Number(e.target.value)||0; saveQual(); render(); });
+$('#reset-btn').addEventListener('click',()=>{
+  if(confirm('Reset all trips and stays to the built-in defaults? This clears your saved edits on this device.')){
+    Object.keys(localStorage).filter(k=>k.indexOf('bonvoy_')===0).forEach(k=>localStorage.removeItem(k));
+    location.reload();
+  }
+});
 $('#promo-add').addEventListener('click',()=>{
   const label=$('#promo-name').value.trim(), pts=Number($('#promo-pts').value)||0;
   if(!label||!pts) return;
