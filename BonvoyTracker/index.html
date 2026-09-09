@@ -391,7 +391,8 @@ function savePts(){ localStorage.setItem('bonvoy_pts_v1', JSON.stringify(PTS)); 
 function defaultTrips(){return[
   {id:'stregis_pm', status:'booked', name:'St. Regis Punta Mita · Sep 12–14',       nights:2, spend:500,  on:true},
   {id:'siari',      status:'booked', name:'Siari Ritz-Carlton Reserve · Sep 14–17', nights:3, spend:3500, on:true},
-  {id:'b1', status:'booked',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:0,    on:true},
+  {id:'b1', status:'booked',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:500,  on:true},
+  {id:'sandiego', status:'booked', name:'San Diego (Callie Bday) · Nov 6–8', nights:2, spend:600, on:true},
   {id:'b2', status:'booked',  name:'Chiang Mai Marriott · Nov 20–22',      nights:2, spend:1000, on:true},
   {id:'b3', status:'booked',  name:'Phulay Bay Ritz Reserve · Nov 22–24',  nights:2, spend:2000, on:true},
   {id:'b4', status:'booked',  name:'Mandapa Ritz Reserve · Nov 27–30',     nights:3, spend:3000, on:true},
@@ -458,6 +459,13 @@ function load(){
     if(localStorage.getItem('bonvoy_mig_thek_ca')!=='1'){
       const t=trips.find(x=>x.id==='santafe_thek'); if(t) t.name='California (Thek) · Dec 27–30';
       localStorage.setItem('bonvoy_mig_thek_ca','1');
+    }
+    // one-time: Ritz Mexico City spend $500; add San Diego (Callie Bday) trip
+    if(localStorage.getItem('bonvoy_mig_mxspend_sd')!=='1'){
+      const mx=trips.find(t=>t.id==='b1'); if(mx) mx.spend=500;
+      const sd=defaultTrips().find(t=>t.id==='sandiego');
+      if(sd && !trips.some(t=>t.id==='sandiego')) trips.push(sd);
+      localStorage.setItem('bonvoy_mig_mxspend_sd','1');
     }
   }catch(e){}
   return trips;
