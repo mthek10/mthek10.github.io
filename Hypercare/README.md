@@ -141,6 +141,7 @@ denominator.
 | `groups` | Which roster groups this applies to |
 | `status` | `live`, `hold` (blocked by a dependency, excluded from coverage), `blocked` (defect), `disqualified` (hidden) |
 | `detect` | `event`, `span`, or `none` — `none` means it cannot emit telemetry and counts as working until verified by hand |
+| `demo` | `true` marks a `detect: none` control as validated by live demonstration. It still renders as the grey check and still counts as working; the flag adds a *demo-able* badge and says so in the tooltips |
 | `confidence` | `inferred` marks the rule as never confirmed against real data, and underlines it in the header |
 | `priority` | Tie-break when several rules match one row; highest wins |
 | `exclusive` | Prefer this rule over non-exclusive matches before comparing priority |

@@ -151,6 +151,7 @@ thead .blocklabel{font-family:var(--f-mono);font-size:10px;letter-spacing:.09em;
 .badge{font-family:var(--f-mono);font-size:9px;font-weight:500;letter-spacing:.05em;padding:1px 4px;border-radius:2px;border:1px solid var(--rule-strong);color:var(--ink-3);text-transform:uppercase}
 .badge.alias{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft)}
 .badge.dark{background:var(--surface-3)}
+.badge.demo{border-color:var(--good);color:var(--good);background:var(--good-bg)}
 tr.dim .agent .a-name{color:var(--ink-3)}
 tr.internal{opacity:.72}
 td.cell{border-bottom:1px solid var(--rule);border-right:1px solid var(--rule)}
@@ -1268,8 +1269,12 @@ function cellNode(p, uc){
   box.append(el("span","g",cell.g));
   if(cell.n) box.append(el("span","c", cell.n>99?"99+":String(cell.n)));
   const meta = STATES[cell.st];
+  // a demo-able control is not merely unobservable: someone has shown it working
+  const why = uc.demo && cell.st==="notel"
+    ? "Demo-able — writes no activity event, so it is validated by live demonstration and counted as working"
+    : meta[2];
   box.title = p.name+" × "+uc.id+" "+uc.name+"\n"+meta[1]+
-              (cell.n?" — "+cell.n+" "+uc.unit:"")+"\n"+meta[2];
+              (cell.n?" — "+cell.n+" "+uc.unit:"")+"\n"+why;
   if(cell.n){
     box.tabIndex=0; box.setAttribute("role","button");
     const open=()=>openCell(p,uc);
@@ -1282,6 +1287,7 @@ const enfOf = uc => typeof uc.enforcement==="string" ? uc.enforcement : uc.enfor
 function ucTitle(uc){
   return uc.id+" — "+uc.name+"\n"+enfOf(uc)+" · "+uc.system+" · "+uc.impl+"\n"+
     (uc.confidence==="inferred"?"Rule INFERRED — never confirmed against a real event.\n":"")+
+    (uc.demo?"DEMO-ABLE — validated by live demonstration and counted as working.\n":"")+
     (uc.hold?"ON HOLD: "+uc.hold+"\n":"")+
     (uc.note||"")+(uc.issue?"\nOPEN DEFECT: "+uc.issue:"");
 }
@@ -1384,6 +1390,7 @@ function buildPivot(tbl){
       if(uc.status==="hold") l2.append(el("span","badge","on hold"));
       if(uc.status==="blocked") l2.append(el("span","badge","blocked"));
       if(uc.detect==="none") l2.append(el("span","badge","no telemetry"));
+      if(uc.demo) l2.append(el("span","badge demo","demo-able"));
       rc.append(l2);
       rc.title=ucTitle(uc);
       tr.append(rc);
@@ -1391,7 +1398,9 @@ function buildPivot(tbl){
       const cv=ucCov(uc);
       tr.append(covCell(cv, cv
         ? (uc.detect==="none"
-            ? "Cannot emit an activity event — counted as working for all "+cv.n+" agents until verified by hand."
+            ? (uc.demo
+                ? "Demo-able — validated by live demonstration and counted as working for all "+cv.n+" agents."
+                : "Cannot emit an activity event — counted as working for all "+cv.n+" agents until verified by hand.")
             : "Exercised by "+cv.k+" of the "+cv.n+" agents this control is assigned to.")
         : "Not counted: "+(uc.status==="hold" ? "on hold" : "not deployed")+"."));
       tbody.append(tr);
