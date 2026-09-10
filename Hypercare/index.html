@@ -282,13 +282,13 @@ label.tog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--i
     <button class="btn" id="btn-findings">AI Findings<span class="cnt" id="fcount">0</span></button>
     <a class="btn" id="doclink" href="#" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Scoping doc &nearr;</a>
     <button class="btn" id="btn-config">Configuration</button>
-    <button class="btn" id="btn-data">Data</button>
+    <button class="btn btn-icon" id="btn-reset" title="Clear every loaded row, for all pilots" aria-label="Clear loaded data"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.1a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L12 4M6.6 7v4M9.4 7v4"/></svg></button>
     <button class="btn" id="btn-export" title="Download every loaded row, plus the configuration, as one file">Export snapshot</button>
-    <button class="btn btn-primary" id="btn-pick">Load export</button>
+    <button class="btn btn-primary" id="btn-pick" title="The events and spans CSV exports, or a snapshot .json">Load export</button>
   </div>
 </div>
 
-<input type="file" id="file" accept=".csv,text/csv" multiple hidden>
+<input type="file" id="file" accept=".csv,text/csv,.json,application/json" multiple hidden>
 <input type="file" id="loadfile" accept=".json,application/json" hidden>
 
 <main class="app">
@@ -1195,7 +1195,12 @@ function findings(){
 <script>
 "use strict";
 /* ===================== small helpers ===================== */
-function flash(msg){ const l=$("#ilog"); l.hidden=false; l.textContent=msg; }
+function flash(msg, ms){
+  const d=$("#drop"), l=$("#ilog");
+  d.hidden=false; $("#prog").hidden=true; l.hidden=false; l.textContent=msg;
+  clearTimeout(flash._t);
+  flash._t=setTimeout(()=>{ if(l.textContent===msg){ l.textContent=""; d.hidden=true; } }, ms||8000);
+}
 function ago(ms){ if(!ms) return "—";
   const s=(Date.now()-ms)/1000;
   if(s<3600) return Math.max(1,Math.round(s/60))+" min ago";
@@ -1526,7 +1531,7 @@ function renderView(){
   $("#setup").hidden = !setup;
   $("#home").hidden  = !home;
   ["#btn-home","#btn-findings","#doclink"].forEach(k=>{ const e=$(k); if(e) e.hidden = home||setup; });
-  ["#btn-pick","#btn-export","#btn-config","#btn-data"].forEach(k=>{ const e=$(k); if(e) e.hidden = !home; });
+  ["#btn-pick","#btn-export","#btn-config","#btn-reset"].forEach(k=>{ const e=$(k); if(e) e.hidden = !home; });
   if(setup){
     $("#brand-h1").textContent = "Pilot Hypercare";
     $("#brand-sub").textContent = "Not configured";
@@ -1611,8 +1616,13 @@ function renderFresh(){
 
 /* ---------- ingest wiring ---------- */
 async function handleFiles(list){
-  const files=[...list].filter(f=>/\.csv$/i.test(f.name)||f.type==="text/csv");
-  if(!files.length){ flash("Those files are not CSVs."); return; }
+  const all=[...list];
+  // a snapshot, or a bare configuration, is JSON and replaces the starting state,
+  // so it takes the first-run path rather than the CSV ingest
+  const json=all.find(f=>/\.json$/i.test(f.name)||f.type==="application/json");
+  if(json){ await loadStartFile(json); return; }
+  const files=all.filter(f=>/\.csv$/i.test(f.name)||f.type==="text/csv");
+  if(!files.length){ flash("Load export takes the events and spans CSV exports, or a snapshot .json file."); return; }
   // the small spans file first, for instant feedback
   files.sort((a,b)=>a.size-b.size);
   $("#drop").hidden=false; $("#drop").classList.remove("drag"); $("#prog").hidden=false;
@@ -1678,7 +1688,19 @@ function wire(){
   };
 
   $("#btn-config").onclick = openConfigDrawer;
-  $("#btn-data").onclick   = openDataDrawer;
+  // destructive, so it arms on the first click and fires on the second
+  const rs=$("#btn-reset"), RS_TIP="Clear every loaded row, for all pilots";
+  rs.onclick=()=>{
+    if(rs.dataset.armed!=="1"){
+      rs.dataset.armed="1"; rs.classList.add("armed");
+      rs.title="Click again to erase every loaded row, for all pilots";
+      clearTimeout(rs._t);
+      rs._t=setTimeout(()=>{ rs.dataset.armed="0"; rs.classList.remove("armed"); rs.title=RS_TIP; },4000);
+      return;
+    }
+    clearTimeout(rs._t); rs.dataset.armed="0"; rs.classList.remove("armed"); rs.title=RS_TIP;
+    clearAllData();
+  };
   $("#btn-export").onclick = exportSnapshot;
 
   $("#loadfile").onchange = e => { const f=e.target.files[0]; e.target.value="";
@@ -1737,12 +1759,28 @@ async function useConfig(raw, source){
    so it is the whole starting state; a bare configuration is the same thing
    with no rows yet. Which one you handed over is a detail of the file, not a
    decision the person loading it should have to make. */
+/* what the last load did, carried across the reload it triggers so it can be shown */
+const LOADED_KEY = "pilot-hypercare:last-load";
+function stashLoaded(msg){ try{ sessionStorage.setItem(LOADED_KEY, msg); }catch(e){} }
+function takeLoaded(){
+  try{ const m=sessionStorage.getItem(LOADED_KEY); sessionStorage.removeItem(LOADED_KEY); return m; }
+  catch(e){ return null; }
+}
+function snapshotSummary(j){
+  const names = {};
+  ((j.config && j.config.pilots) || []).forEach(p => names[p.id] = p.name);
+  const parts = Object.entries(j.pilots || {}).map(([pid, d]) =>
+    (names[pid] || pid)+" "+fmtInt((d.events||[]).length)+" events, "+fmtInt((d.spans||[]).length)+" spans");
+  return "Snapshot loaded: "+(parts.length ? parts.join(" · ") : "it held no rows")+".";
+}
+
 async function loadStartFile(file){
   setupError(null);
   try{
     const j = await readJSONFile(file);
     if(j && j.kind === SNAP_KIND){
       await applySnapshot(j);
+      stashLoaded(snapshotSummary(j));
       location.reload();
       return;
     }
@@ -1752,6 +1790,7 @@ async function loadStartFile(file){
       return;
     }
     await storeConfig({...j, source:"manual", loadedAt:Date.now()});
+    stashLoaded("Configuration v"+(Number(j.version)||1)+" loaded. Rows already in this browser were kept.");
     location.reload();
   }catch(e){
     if(e && e.message === "invalid") return;
@@ -1822,61 +1861,6 @@ async function clearAllData(){
   closeDrawer();
   if(S.view==="home") renderView(); else renderAll();
 }
-/* destructive actions arm on the first click and fire on the second */
-function armed(btn, label, armLabel, fn){
-  btn.onclick = () => {
-    if(btn.dataset.armed!=="1"){
-      btn.dataset.armed="1"; btn.classList.add("armed"); btn.textContent=armLabel;
-      clearTimeout(btn._t);
-      btn._t=setTimeout(()=>{ btn.dataset.armed="0"; btn.classList.remove("armed");
-        btn.textContent=label; },4000);
-      return;
-    }
-    clearTimeout(btn._t); btn.dataset.armed="0"; btn.classList.remove("armed");
-    btn.textContent=label;
-    fn();
-  };
-}
-function openDataDrawer(){
-  let rows=0, sp=0;
-  BUCKETS.forEach(b=>{ rows+=b.events.size; sp+=b.spans.size; });
-  showDrawer("Data", S.storeKind==="local"
-      ? "Stored in this browser only" : "Not being stored — this session only", b=>{
-    const stats = [
-      ["Events held", fmtInt(rows)],
-      ["Spans held",  fmtInt(sp)],
-      ["Pilots with data", [...BUCKETS.entries()]
-        .filter(([,x])=>x.events.size||x.spans.size)
-        .map(([pid])=>{ const p=PILOTS.find(y=>y.id===pid); return p?p.name:pid; })
-        .join(", ") || "none"]
-    ];
-    stats.forEach(([k,v])=>{
-      const r=el("div","cfg-row"); r.append(el("span","k",k), el("span","v",v)); b.append(r);
-    });
-
-    const note=el("p"); note.style.cssText="font-size:12.5px;color:var(--ink-2);line-height:1.6;margin:18px 0 0";
-    note.textContent="Exports are merged, not replaced: a row already held is skipped and a span still "+
-      "open at export time is extended by the next one. A run of partial exports therefore adds up to more "+
-      "than any single one contains, which is what a snapshot carries.";
-    b.append(note);
-
-    const acts=el("div","setup-acts");
-    const out=el("button","btn btn-primary","Export snapshot");
-    out.onclick=exportSnapshot;
-    const inn=el("button","btn","Import snapshot…");
-    inn.onclick=()=>$("#loadfile").click();
-    acts.append(out, inn); b.append(acts);
-
-    const danger=el("div","setup-acts"); danger.style.marginTop="26px";
-    const wipe=el("button","btn","Clear every loaded row");
-    armed(wipe, "Clear every loaded row", "Click again to erase everything", clearAllData);
-    danger.append(wipe); b.append(danger);
-    const dn=el("p"); dn.style.cssText="font-size:11.5px;color:var(--ink-3);margin:8px 0 0";
-    dn.textContent="Clears all pilots in this browser. Export a snapshot first if you want it back.";
-    b.append(dn);
-  });
-}
-
 /* ---------- boot ---------- */
 (async function boot(){
   wire();
@@ -1901,6 +1885,8 @@ function openDataDrawer(){
   activate(PILOT.id);
   renderTZ();
   renderView();
+  // the one message that says whether an import worked: leave it up long enough to read
+  const last = takeLoaded(); if(last) flash(last, 20000);
 })();
 </script>
 

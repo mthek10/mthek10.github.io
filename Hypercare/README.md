@@ -56,7 +56,8 @@ silently overwriting someone's local setup.
 ## Loading data
 
 The **Load export** button (or dropping files anywhere on the page) accepts the two
-activity CSVs. File type is decided by the header row, not the filename:
+activity CSVs, or a snapshot `.json` — a snapshot replaces the browser's starting state,
+CSVs are merged into it. CSV type is decided by the header row, not the filename:
 
 - **events** — needs `event_type` and `occurred_at`. Also reads `event_id`, `email`,
   `url`, `domain`, `policy`, and `data` (a JSON blob).
@@ -75,7 +76,7 @@ you can load a narrow export without losing history, and why snapshots exist.
 
 ## Snapshots
 
-**Data → Export snapshot** writes a JSON file containing every accumulated row plus the
+**Export snapshot** in the top bar writes a JSON file containing every accumulated row plus the
 configuration that gives it meaning. Because it carries both, it is also the fastest way
 to onboard someone: they load that single file and are looking at exactly what you are.
 
@@ -193,4 +194,5 @@ Available fields — **event**: `event_type`, `url`, `domain`, `policy`, `data.*
   duplicates and collapsed by default — inconsistent `allFrames` across triggers makes
   a control fire once per frame, so raw counts overstate what happened.
 - Shrinking a roster removes that person's stored rows on the next load.
-- Clearing data affects only your own browser.
+- The trash icon in the top bar clears every loaded row, for all pilots. It arms on the
+  first click and fires on the second, and affects only your own browser.
