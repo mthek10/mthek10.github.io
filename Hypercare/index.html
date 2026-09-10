@@ -1,0 +1,1893 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pilot Hypercare</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+html{color-scheme:light}
+body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}
+img{max-width:100%}
+[hidden]:not([hidden=until-found]){display:none!important}
+</style>
+</head>
+<body>
+<style>
+:root{
+  color-scheme: light;
+  --plane:#f6f5f9; --surface:#ffffff; --surface-2:#f1eff7; --surface-3:#e7e4f1;
+  --ink:#171426; --ink-2:#544f6b; --ink-3:#837d99;
+  --rule:#e3e0ec; --rule-strong:#c9c4da;
+  --accent:#5A19DA; --accent-soft:#efe8fd; --accent-ink:#4a12b8;
+  --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --good-bg:#e4f5e4; --warning-bg:#fdf2d8; --serious-bg:#fbe9e0; --critical-bg:#f9e3e3;
+  --shadow:0 1px 2px rgba(15,22,32,.06);
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--plane);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;overflow:hidden;display:flex;flex-direction:column}
+.app{flex:1;min-height:0;display:flex;flex-direction:column;width:100%;max-width:1800px;margin:0 auto;padding:16px 32px 18px}
+.mxhead{flex:none;background:var(--surface);border:1px solid var(--rule);border-bottom:none;padding:15px 22px}
+.soon{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--rule)}
+/* home */
+.home{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto}
+.home-in{width:100%;max-width:820px;padding:20px}
+.home-in h2{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:8px 0 26px}
+.prows{display:flex;flex-direction:column;gap:12px}
+.prow{display:grid;grid-template-columns:1fr 150px auto 26px;align-items:center;gap:24px;width:100%;
+  padding:22px 26px;background:var(--surface);border:1px solid var(--rule);border-radius:6px;
+  cursor:pointer;text-align:left;font:inherit;color:inherit;transition:border-color .12s,box-shadow .12s}
+.prow:hover{border-color:var(--accent);box-shadow:0 3px 14px rgba(90,25,218,.12)}
+.prow .pname{font-family:var(--f-display);font-size:21px;font-weight:600;letter-spacing:-.01em;display:block}
+.prow .pmeta{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin-top:4px;display:block;letter-spacing:.02em}
+.prow .pbar{height:7px;border-radius:4px;background:var(--surface-3);overflow:hidden}
+.prow .pbar i{display:block;height:100%;border-radius:4px}
+.prow .pfrac{font-family:var(--f-display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;
+  white-space:nowrap;text-align:right;line-height:1.1}
+.prow .pfrac small{font-size:15px;font-weight:600;color:var(--ink-3)}
+.prow .plbl{display:block;font-family:var(--f-body);font-size:11px;font-weight:500;color:var(--ink-3);margin-top:3px}
+.prow .pgo{font-size:19px;color:var(--ink-3)}
+.prow:hover .pgo{color:var(--accent)}
+.prow .ptag{font-family:var(--f-mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);border:1px solid var(--rule-strong);border-radius:3px;padding:3px 7px;white-space:nowrap}
+.soon-in{max-width:56ch;text-align:center;padding:40px}
+.soon-in h3{font-size:20px;font-weight:600;margin:12px 0 10px}
+.soon-in p{font-size:13.5px;color:var(--ink-2);line-height:1.6;margin:0}
+.mxhead-top{display:flex;align-items:baseline;gap:16px;margin-bottom:11px}
+.mxhead-top h2{font-size:17px;font-weight:600}
+.mxhead-top .note{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);margin-left:auto;cursor:default}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+a{color:var(--accent-ink)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+
+/* ---------- top rail ---------- */
+.rail{position:sticky;top:0;z-index:60;background:var(--surface);border-bottom:1px solid var(--rule)}
+.rail-in{max-width:1800px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px;margin-right:auto;min-width:0;flex:1 1 260px}
+.brand .pblogo{height:24px;width:auto;flex:none;display:block}
+.brand-rule{width:1px;height:30px;background:var(--rule-strong);flex:none}
+.brand-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
+.brand h1{font-size:17px;font-weight:700;white-space:nowrap}
+.brand .sub{font-size:11px;color:var(--ink-3);font-family:var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .sub{display:flex;align-items:center}
+.brand .sub>span:first-child{overflow:hidden;text-overflow:ellipsis}
+.brand .sub a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid transparent;white-space:nowrap}
+.fresh.bare{margin-left:0;padding-left:0;border-left:none}
+.brand .sub a:hover{border-bottom-color:var(--accent)}
+.fresh{display:inline-flex;align-items:center;gap:5px;margin-left:9px;padding-left:9px;flex:none;
+  border-left:1px solid var(--rule-strong);white-space:nowrap;cursor:default}
+.fresh .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3);flex:none}
+.fresh.is-fresh .dot{background:var(--good)}
+.fresh.is-stale .dot{background:var(--warning)}
+.btn{border:1px solid var(--rule-strong);background:var(--surface);padding:7px 12px;border-radius:3px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.08);background:var(--accent)}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn-icon{padding:7px 9px;display:inline-flex;align-items:center;justify-content:center;line-height:0}
+.btn-icon.armed{border-color:var(--critical);color:var(--critical);background:var(--critical-bg)}
+
+/* ---------- ingest ---------- */
+.ingest{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:80;min-width:520px;max-width:min(900px,92vw);
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);padding:13px 18px;box-shadow:0 10px 34px rgba(23,20,38,.18)}
+.ingest.drag{border-color:var(--accent);border-style:dashed;background:var(--accent-soft)}
+.prog{height:4px;background:var(--surface-3);border-radius:2px;overflow:hidden;margin-bottom:9px}
+.prog i{display:block;height:100%;background:var(--accent);width:0}
+.ingest-log{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-space:pre-wrap}
+
+/* ---------- sections ---------- */
+.lede{font-size:13.5px;color:var(--ink-2);max-width:120ch;margin:0 0 18px;line-height:1.55}
+
+/* ---------- matrix ---------- */
+.mx-scroll{flex:1;min-height:0;overflow:auto;background:var(--surface);border:1px solid var(--rule);border-top:none}
+table.mx-pivot thead th{position:sticky;top:0;z-index:4}
+table.mx-pivot thead th.uc-row{z-index:6}
+table.mx{border-collapse:separate;border-spacing:0;font-size:12px;width:100%}
+table.mx th,table.mx td{padding:0;text-align:center}
+table.mx .agent{position:sticky;left:0;z-index:3;background:var(--surface);text-align:left;padding:11px 16px 11px 20px;min-width:268px;border-right:1px solid var(--rule-strong);border-bottom:1px solid var(--rule)}
+table.mx thead .agent,table.mx thead .uc-row{z-index:5;vertical-align:bottom}
+table.mx thead th{background:var(--surface);border-bottom:1px solid var(--rule-strong);vertical-align:bottom;padding:8px 0 7px}
+.uc-h{width:66px;min-width:66px;padding-left:2px;padding-right:2px}
+.uc-h .code{font-family:var(--f-mono);font-size:13px;font-weight:600;letter-spacing:.02em}
+.uc-h .enf{font-size:9px;font-family:var(--f-mono);color:var(--ink-3);letter-spacing:.04em;margin-top:3px}
+.uc-h .ucname{font-size:10px;line-height:1.25;color:var(--ink-2);margin:6px 4px 0;height:50px;overflow:hidden;font-weight:500;text-wrap:balance}
+.uc-h.unverified .code{border-bottom:1.5px dotted var(--warning);padding-bottom:1px}
+table.mx .uc-row{position:sticky;left:0;z-index:3;background:var(--surface);text-align:left;
+  padding:12px 18px 12px 20px;border-right:1px solid var(--rule-strong);border-bottom:1px solid var(--rule)}
+table.mx .uc-row .l1{display:flex;align-items:baseline;gap:9px}
+table.mx .uc-row .code{font-family:var(--f-mono);font-size:13px;font-weight:600;flex:none}
+table.mx .uc-row .nm{font-size:14px;font-weight:600}
+table.mx .uc-row .l2{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3);margin-top:4px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+table.mx .uc-row.unverified .code{border-bottom:1.5px dotted var(--warning)}
+table.mx .ag-h{width:104px;min-width:104px;padding:10px 6px 9px}
+table.mx-pivot td.cell,table.mx-pivot th.ag-h{padding-left:5px;padding-right:5px}
+table.mx-pivot td.cell:first-of-type,table.mx-pivot th.ag-h:first-of-type{padding-left:14px}
+table.mx-pivot td.cell:last-of-type,table.mx-pivot th.ag-h:last-of-type{padding-right:14px}
+table.mx-pivot .cov{padding:0 18px;text-align:right}
+table.mx-pivot .cellbox{min-width:0}
+table.mx .ag-h .an{white-space:normal;overflow-wrap:break-word}
+.ag-h .an{font-size:12px;font-weight:600;line-height:1.25;margin:0 4px}
+.ag-h .al{font-family:var(--f-mono);font-size:9.5px;color:var(--ink-3);margin-top:3px}
+table.mx tr.grouprow td{background:var(--surface-2);border-top:1px solid var(--rule-strong);border-bottom:1px solid var(--rule);
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+  text-align:left;padding:8px 20px;font-weight:500}
+.blockgap{width:16px;background:var(--surface-2);border-left:1px solid var(--rule);border-right:1px solid var(--rule)}
+thead .blocklabel{font-family:var(--f-mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);padding:9px 0 5px;border-bottom:1px solid var(--rule);text-align:center;font-weight:500}
+.a-name{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:6px}
+.a-meta{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px}
+.badge{font-family:var(--f-mono);font-size:9px;font-weight:500;letter-spacing:.05em;padding:1px 4px;border-radius:2px;border:1px solid var(--rule-strong);color:var(--ink-3);text-transform:uppercase}
+.badge.alias{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft)}
+.badge.dark{background:var(--surface-3)}
+tr.dim .agent .a-name{color:var(--ink-3)}
+tr.internal{opacity:.72}
+td.cell{border-bottom:1px solid var(--rule);border-right:1px solid var(--rule)}
+.cellbox{width:100%;min-width:60px;height:54px;display:flex;align-items:center;justify-content:center;position:relative;cursor:default}
+.cellbox.clickable{cursor:pointer}
+.cellbox.clickable:hover{outline:2px solid var(--accent);outline-offset:-2px}
+.cellbox .g{font-family:var(--f-mono);font-size:21px;line-height:1}
+.cellbox .c{position:absolute;right:6px;bottom:4px;font-family:var(--f-mono);font-size:11px;font-weight:600;line-height:1}
+.st-fired{background:var(--good-bg);color:var(--good)}
+.st-silent-gap{background:var(--surface);color:var(--critical);box-shadow:inset 0 0 0 1px var(--critical)}
+.st-silent-ok{background:var(--surface);color:var(--ink-3)}
+.st-nocov{background:var(--surface-2);color:var(--ink-3)}
+.st-notel{background:var(--surface-2);color:var(--ink-3)}
+.st-blocked{background:var(--critical-bg);color:var(--critical)}
+.st-hold{background:var(--surface-2);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--rule-strong)}
+.st-nel{background:repeating-linear-gradient(45deg,transparent,transparent 4px,var(--surface-2) 4px,var(--surface-2) 5px);color:transparent}
+.st-nodata{background:var(--surface);color:var(--ink-3)}
+.cov{position:sticky;right:0;background:var(--surface);border-left:1px solid var(--rule-strong);border-bottom:1px solid var(--rule);padding:0 16px;font-family:var(--f-mono);font-size:15px;font-weight:600;white-space:nowrap;min-width:86px}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px 26px;padding:16px 20px;background:var(--surface);border:1px solid var(--rule);border-top:none;font-size:12.5px;color:var(--ink-2)}
+.legend .li{display:flex;align-items:center;gap:7px}
+.legend .sw{width:25px;height:25px;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:14px;border-radius:2px;flex:none}
+
+/* ---------- findings ---------- */
+.findings{display:flex;flex-direction:column}
+.finding{display:grid;grid-template-columns:auto 1fr auto;gap:14px;padding:13px 18px;border-bottom:1px solid var(--rule);align-items:start}
+.finding:last-child{border-bottom:none}
+.sev{width:4px;align-self:stretch;border-radius:2px;background:var(--ink-3)}
+.sev.critical{background:var(--critical)} .sev.warning{background:var(--warning)}
+.sev.serious{background:var(--serious)} .sev.good{background:var(--good)}
+.finding .t{font-weight:600;font-size:13px}
+.finding .d{font-size:12.5px;color:var(--ink-2);margin-top:3px;max-width:92ch}
+.finding .tag{font-family:var(--f-mono);font-size:10px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;padding-top:2px}
+
+/* ---------- drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(15,22,32,.42);z-index:90;display:none}
+.scrim.open{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(680px,94vw);background:var(--surface);border-left:1px solid var(--rule-strong);z-index:100;display:none;flex-direction:column}
+.drawer.open{display:flex}
+.drawer header{padding:18px 22px;border-bottom:1px solid var(--rule);display:flex;align-items:flex-start;gap:14px}
+.drawer header h3{font-size:15px;font-weight:600}
+.drawer header .sub{font-size:12px;color:var(--ink-3);margin-top:3px;font-family:var(--f-mono)}
+.drawer .body{overflow:auto;padding:18px 22px;flex:1}
+.rulebox{background:var(--surface-2);border:1px solid var(--rule);border-radius:3px;padding:12px 14px;font-family:var(--f-mono);font-size:11.5px;white-space:pre-wrap;word-break:break-word;margin-bottom:16px;color:var(--ink-2)}
+.evt{border-bottom:1px solid var(--rule);padding:11px 0;font-size:12px}
+.evt .top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.evt .ts{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.evt .msg{color:var(--ink-2);margin-top:4px;max-width:70ch}
+.evt .just{margin-top:5px;padding:7px 10px;background:var(--surface-2);border-left:2px solid var(--accent);font-size:11.5px;font-family:var(--f-mono);white-space:pre-wrap;word-break:break-word}
+.pill{font-family:var(--f-mono);font-size:10px;font-weight:600;letter-spacing:.04em;padding:2px 6px;border-radius:2px;text-transform:uppercase;white-space:nowrap}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.warning{background:var(--warning-bg);color:#8a6100}
+.pill.critical{background:var(--critical-bg);color:var(--critical)}
+.pill.neutral{background:var(--surface-3);color:var(--ink-2)}
+
+/* ---------- misc ---------- */
+.ctrls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+select,input[type=text]{font:inherit;font-size:12.5px;padding:5px 9px;border:1px solid var(--rule-strong);border-radius:3px;background:var(--surface);color:var(--ink)}
+label.tog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.empty{padding:26px 20px;text-align:center;color:var(--ink-3);font-size:12.5px}
+@media print{
+  html,body{height:auto;overflow:visible}
+  .rail{position:static}.ingest,.drawer,.scrim,.mscrim{display:none!important}
+  body{background:#fff}.app{display:block}.mx-scroll{overflow:visible;flex:none}
+}
+/* findings modal */
+.mscrim{position:fixed;inset:0;background:rgba(23,20,38,.5);z-index:110;display:none;align-items:center;justify-content:center;padding:36px}
+.mscrim.open{display:flex}
+.modal{background:var(--surface);border-radius:6px;width:100%;max-width:1040px;max-height:100%;
+  display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(23,20,38,.3);overflow:hidden}
+.modal header{padding:18px 24px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:14px;flex:none}
+.modal header h3{font-size:16px;font-weight:600}
+.modal header .sub{font-size:12px;color:var(--ink-3);font-family:var(--f-mono);margin-top:2px}
+.modal .mbody{overflow:auto;flex:1;min-height:0}
+.btn .cnt{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;
+  margin-left:7px;border-radius:9px;background:var(--accent);color:#fff;font-family:var(--f-mono);font-size:10px;font-weight:600}
+.btn-primary .cnt{background:rgba(255,255,255,.26)}
+@media (max-width:820px){
+  .wrap,.rail-in{padding-left:16px;padding-right:16px}
+  .barrow{grid-template-columns:1fr;gap:5px}
+}
+/* ---------- setup / configuration ---------- */
+.setup{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto}
+.setup-in{width:100%;max-width:660px;padding:28px}
+.setup-in h2{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:8px 0 12px}
+.setup-in p{font-size:13.5px;color:var(--ink-2);line-height:1.6;margin:0 0 14px;max-width:64ch}
+.setup-card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:22px 24px;margin-top:18px}
+.setup-card h3{font-size:14px;font-weight:600;margin:0 0 8px}
+.setup-acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.setup-err{background:var(--critical-bg);border:1px solid var(--critical);border-radius:4px;
+  padding:11px 14px;font-size:12.5px;color:var(--critical);margin-top:14px;white-space:pre-wrap;
+  font-family:var(--f-mono)}
+.cfg-row{display:flex;justify-content:space-between;gap:18px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:12.5px}
+.cfg-row:last-child{border-bottom:none}
+.cfg-row .k{color:var(--ink-3)}
+.cfg-row .v{font-family:var(--f-mono);text-align:right;word-break:break-word}
+</style>
+
+<div class="rail">
+  <div class="rail-in">
+    <div class="brand">
+      <svg class="pblogo" width="343" height="60" role="img" aria-label="PixieBrix" viewBox="0 0 343 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 6.81873C0 3.05285 3.05285 0 6.81874 0H53.1813C56.9472 0 60 3.05285 60 6.81874V53.1813C60 56.9472 56.9472 60 53.1813 60H6.81873C3.05285 60 0 56.9472 0 53.1813V6.81873Z" fill="#5A19DA"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M23.9028 9.39029C22.2864 9.39029 20.976 10.7007 20.976 12.3171V24.5309C20.976 26.1473 22.2864 27.4577 23.9028 27.4577H36.1166C37.7331 27.4577 39.0434 26.1473 39.0434 24.5309V12.3171C39.0434 10.7007 37.7331 9.39029 36.1166 9.39029H23.9028ZM30.4786 14.1583C30.4597 13.0598 31.3376 12.1539 32.4395 12.135C33.5414 12.1161 34.4502 12.9913 34.4691 14.0898C34.488 15.1883 33.6102 16.0941 32.5081 16.113C32.0927 16.1202 31.7047 16.0002 31.3813 15.789L28.1934 17.7404C28.2484 17.9169 28.2796 18.1042 28.283 18.2984C28.2875 18.5654 28.2391 18.821 28.1474 19.0552L31.3118 20.9922C31.6299 20.7646 32.0184 20.6279 32.4395 20.6206C33.5414 20.6017 34.4502 21.4769 34.4691 22.5754C34.488 23.6739 33.6102 24.5798 32.5081 24.5987C31.4062 24.6176 30.4976 23.7424 30.4786 22.6439C30.477 22.5492 30.482 22.4559 30.4933 22.3646L26.9645 20.2046C26.7637 20.2767 26.5475 20.3178 26.322 20.3216C25.2201 20.3405 24.3115 19.4653 24.2924 18.3669C24.2735 17.2684 25.1515 16.3625 26.2534 16.3436C26.5625 16.3383 26.8565 16.4033 27.1199 16.524L30.5053 14.4518C30.4894 14.3562 30.4804 14.2581 30.4786 14.1583Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12.4394 32.3357C10.823 32.3357 9.51257 33.6462 9.51257 35.2625V47.4763C9.51257 49.0928 10.823 50.4031 12.4394 50.4031H24.6532C26.2696 50.4031 27.58 49.0928 27.58 47.4763V35.2625C27.58 33.6462 26.2696 32.3357 24.6532 32.3357H12.4394ZM19.704 40.2157H23.1061C23.3583 40.2157 23.5911 40.2976 23.7807 40.4358C24.073 40.643 24.2639 40.9839 24.2639 41.3695C24.2639 41.6784 24.1413 41.9588 23.9422 42.1645C23.731 42.3851 23.4338 42.5232 23.1061 42.5232H19.704V45.9333C19.704 46.4858 19.306 46.9534 18.7812 47.0628C18.7054 47.0786 18.6269 47.087 18.5465 47.087C17.9014 47.087 17.3887 46.5742 17.3887 45.9333V42.5232H13.9864C13.3413 42.5232 12.8287 42.0104 12.8287 41.3695C12.8287 41.0606 12.9512 40.7803 13.1503 40.5745C13.3615 40.3539 13.6587 40.2157 13.9864 40.2157H17.3887V36.8057C17.3887 36.2532 17.7866 35.7855 18.3113 35.676C18.3873 35.6602 18.4657 35.6519 18.546 35.6519C19.1911 35.6519 19.704 36.1648 19.704 36.8057V40.2157Z" fill="white"/>
+<path d="M39.2077 37.5866H41.2898V39.2454C41.2898 39.7782 41.7093 40.2106 42.2298 40.2106H43.776V45.2667H39.2077V37.5866Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M32.458 35.2625C32.458 33.6462 33.7684 32.3357 35.3849 32.3357H47.5986C49.2151 32.3357 50.5255 33.6462 50.5255 35.2625V47.4763C50.5255 49.0928 49.2151 50.4031 47.5986 50.4031H35.3849C33.7684 50.4031 32.458 49.0928 32.458 47.4763V35.2625ZM42.4784 35.6317L45.7493 38.9906C45.8736 39.1295 45.9514 39.3071 45.9514 39.5079V46.0105C45.9515 46.0135 45.9514 46.0165 45.9514 46.0195C45.9514 46.021 45.9514 46.0225 45.9514 46.0239C45.936 46.8052 45.3201 47.4301 44.5607 47.4301H38.4228C37.6636 47.4301 37.0478 46.7979 37.0321 46.0239V36.8295C37.0475 36.0481 37.6634 35.4232 38.4228 35.4232H41.989C42.1677 35.4232 42.3464 35.5005 42.4784 35.6317Z" fill="white"/>
+<path d="M118.417 14.0117C119.523 15.0445 120.854 15.5608 122.409 15.5608C123.949 15.5608 125.269 15.0445 126.368 14.0117C127.467 12.979 128.016 11.7315 128.016 10.2691C128.016 8.8218 127.467 7.5818 126.368 6.54908C125.269 5.51636 123.942 5 122.387 5C120.847 5 119.523 5.51636 118.417 6.54908C117.31 7.5818 116.757 8.8218 116.757 10.2691C116.757 11.7315 117.31 12.979 118.417 14.0117Z" fill="#5A19DA"/>
+<path d="M116.892 53.1096C116.892 53.7914 117.438 54.3442 118.113 54.3442H126.638C127.313 54.3442 127.859 53.7914 127.859 53.1096V20.8434C127.859 20.1614 127.313 19.6088 126.638 19.6088H118.113C117.438 19.6088 116.892 20.1614 116.892 20.8434V53.1096Z" fill="#5A19DA"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M77.2211 54.3441C76.5467 54.3441 76 53.7914 76 53.1096V9.26486C76 8.58303 76.5467 8.03029 77.2211 8.03029H94.9749C98.4139 8.03029 101.386 8.70495 103.89 10.0543C106.395 11.4036 108.327 13.2806 109.688 15.6852C111.049 18.0899 111.729 20.8826 111.729 24.0637C111.729 27.2599 111.038 30.0527 109.654 32.4423C108.271 34.8318 106.301 36.6824 103.745 37.994C101.188 39.3057 98.1523 39.9615 94.6383 39.9615H87.1023V53.1096C87.1023 53.7914 86.5555 54.3441 85.8812 54.3441H77.2211ZM87.1023 31.142H92.5749C94.2495 31.142 95.6514 30.8479 96.7803 30.26C97.9093 29.6721 98.7652 28.8467 99.3485 27.7838C99.9316 26.7209 100.223 25.4809 100.223 24.0637C100.223 22.6314 99.9316 21.3916 99.3485 20.3437C98.7652 19.2959 97.9056 18.4856 96.7692 17.9127C95.6328 17.3397 94.2347 17.0533 92.5749 17.0533H87.1023V31.142Z" fill="#5A19DA"/>
+<path d="M143.379 20.2899L148.715 31.0515L154.251 20.2744C154.459 19.8654 154.878 19.6088 155.333 19.6088H163.566C164.499 19.6088 165.087 20.6237 164.631 21.4467L156.027 36.9764L164.942 52.4894C165.415 53.3124 164.828 54.3442 163.886 54.3442H155.76C155.315 54.3442 154.906 54.1007 154.691 53.7083L148.715 42.8109L142.893 53.6967C142.681 54.0956 142.268 54.3442 141.82 54.3442H133.547C132.605 54.3442 132.017 53.3114 132.491 52.4884L141.426 36.9764L132.919 21.4413C132.47 20.6184 133.058 19.6088 133.988 19.6088H142.287C142.75 19.6088 143.171 19.8724 143.379 20.2899Z" fill="#5A19DA"/>
+<path d="M171.607 54.3442C170.932 54.3442 170.386 53.7914 170.386 53.1096V20.8434C170.386 20.1614 170.932 19.6088 171.607 19.6088H180.132C180.806 19.6088 181.353 20.1614 181.353 20.8434V53.1096C181.353 53.7914 180.806 54.3442 180.132 54.3442H171.607Z" fill="#5A19DA"/>
+<path d="M171.911 14.0117C173.017 15.0445 174.348 15.5608 175.904 15.5608C177.443 15.5608 178.763 15.0445 179.862 14.0117C180.961 12.979 181.511 11.7315 181.511 10.2691C181.511 8.8218 180.961 7.5818 179.862 6.54908C178.763 5.51636 177.436 5 175.88 5C174.341 5 173.017 5.51636 171.911 6.54908C170.804 7.5818 170.25 8.8218 170.25 10.2691C170.25 11.7315 170.804 12.979 171.911 14.0117Z" fill="#5A19DA"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M194.804 52.8403C197.413 54.2801 200.519 55 204.123 55C207.128 55 209.775 54.5363 212.063 53.6092C214.351 52.6819 216.2 51.3779 217.613 49.6969C218.728 48.3709 219.534 46.8596 220.029 45.1631C220.242 44.4363 219.685 43.741 218.935 43.7191L211.163 43.4922C210.642 43.477 210.181 43.808 209.92 44.2655C209.674 44.6957 209.371 45.0777 209.013 45.4115C208.444 45.9391 207.764 46.3388 206.971 46.6102C206.179 46.8814 205.296 47.0172 204.324 47.0172C202.919 47.0172 201.708 46.7231 200.691 46.1352C199.674 45.5473 198.889 44.7218 198.335 43.6589C197.782 42.596 197.506 41.356 197.506 39.9389V39.6449H219.252C219.927 39.6449 220.472 39.0922 220.472 38.4104V36.886C220.472 34.0366 220.061 31.5076 219.239 29.2989C218.416 27.0903 217.266 25.2322 215.785 23.7245C214.306 22.2169 212.548 21.0787 210.515 20.3098C208.481 19.541 206.238 19.1565 203.786 19.1565C200.317 19.1565 197.304 19.9065 194.747 21.4066C192.19 22.9066 190.209 25.0023 188.803 27.6934C187.398 30.3844 186.695 33.524 186.695 37.1122C186.695 40.8059 187.394 43.9906 188.792 46.6667C190.191 49.3426 192.194 51.4006 194.804 52.8403ZM197.513 33.2225C197.567 32.1042 197.864 31.0978 198.403 30.2035C198.971 29.2612 199.742 28.515 200.713 27.9647C201.685 27.4144 202.784 27.1392 204.01 27.1392C205.222 27.1392 206.294 27.3993 207.229 27.9194C208.163 28.4396 208.9 29.1595 209.438 30.0791C209.976 30.9987 210.253 32.0466 210.268 33.2225H197.513Z" fill="#5A19DA"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M225.816 53.1096C225.816 53.7914 226.361 54.3441 227.036 54.3441H246.427C249.822 54.3441 252.707 53.7825 255.084 52.6594C257.462 51.5362 259.279 49.9985 260.535 48.0461C261.79 46.0937 262.419 43.8738 262.419 41.3862C262.419 39.1549 261.94 37.2215 260.983 35.5857C260.026 33.95 258.759 32.6722 257.181 31.7525C255.604 30.8329 253.889 30.3278 252.034 30.2375V29.7851C253.724 29.4233 255.212 28.7901 256.497 27.8856C257.783 26.981 258.793 25.839 259.525 24.4595C260.258 23.0801 260.624 21.5084 260.624 19.7444C260.624 17.4227 260.038 15.3799 258.864 13.6159C257.69 11.8521 255.941 10.4802 253.616 9.50021C251.291 8.52029 248.409 8.03029 244.969 8.03029H227.036C226.361 8.03029 225.816 8.58303 225.816 9.26486V53.1096ZM243.78 45.3211H236.917V34.2853H243.983C245.402 34.2853 246.622 34.5228 247.638 34.9977C248.655 35.4726 249.44 36.1434 249.993 37.0104C250.547 37.8773 250.823 38.9062 250.823 40.0972C250.823 41.7405 250.251 43.022 249.107 43.9416C247.963 44.8612 246.187 45.3211 243.78 45.3211ZM243.063 27.0714H236.917V16.9177H243.242C245.096 16.9177 246.569 17.3624 247.661 18.2519C248.752 19.1415 249.298 20.3625 249.298 21.9154C249.298 23.0009 249.033 23.9281 248.502 24.6969C247.971 25.4658 247.234 26.0537 246.293 26.4608C245.351 26.8679 244.274 27.0714 243.063 27.0714Z" fill="#5A19DA"/>
+<path d="M267.876 19.6088C267.203 19.6088 266.656 20.1616 266.656 20.8434V53.1096C266.656 53.7914 267.203 54.3442 267.876 54.3442H276.401C277.077 54.3442 277.624 53.7914 277.624 53.1096V35.4839C277.624 34.0969 277.918 32.8871 278.509 31.8543C279.099 30.8216 279.914 30.0151 280.954 29.4346C281.993 28.8542 283.163 28.564 284.464 28.564C285.121 28.564 285.873 28.6168 286.717 28.7223C286.851 28.7389 286.98 28.7566 287.106 28.775C287.934 28.8975 288.77 28.2717 288.77 27.425V20.4688C288.77 19.9192 288.411 19.4287 287.877 19.3299C287.68 19.2933 287.476 19.2619 287.267 19.2356C286.729 19.1678 286.205 19.1338 285.698 19.1338C283.813 19.1338 282.161 19.6954 280.74 20.8186C279.32 21.9418 278.296 23.6492 277.668 25.9407H277.308V20.8434C277.308 20.1616 276.763 19.6088 276.088 19.6088H267.876Z" fill="#5A19DA"/>
+<path d="M293.782 53.1096C293.782 53.7914 294.329 54.3442 295.003 54.3442H303.529C304.203 54.3442 304.75 53.7914 304.75 53.1096V20.8434C304.75 20.1614 304.203 19.6088 303.529 19.6088H295.003C294.329 19.6088 293.782 20.1614 293.782 20.8434V53.1096Z" fill="#5A19DA"/>
+<path d="M299.3 15.5608C297.744 15.5608 296.413 15.0445 295.308 14.0117C294.201 12.979 293.648 11.7315 293.648 10.2691C293.648 8.8218 294.201 7.5818 295.308 6.54908C296.413 5.51636 297.737 5 299.278 5C300.833 5 302.159 5.51636 303.258 6.54908C304.357 7.5818 304.907 8.8218 304.907 10.2691C304.907 11.7315 304.357 12.979 303.258 14.0117C302.159 15.0445 300.839 15.5608 299.3 15.5608Z" fill="#5A19DA"/>
+<path d="M320.27 20.2899L325.606 31.0515L331.14 20.2744C331.35 19.8654 331.768 19.6088 332.224 19.6088H340.456C341.388 19.6088 341.978 20.6237 341.522 21.4467L332.917 36.9764L341.833 52.4894C342.306 53.3124 341.719 54.3442 340.777 54.3442H332.651C332.206 54.3442 331.798 54.1007 331.582 53.7083L325.606 42.8109L319.784 53.6967C319.57 54.0956 319.159 54.3442 318.711 54.3442H310.438C309.495 54.3442 308.908 53.3114 309.382 52.4884L318.316 36.9764L309.81 21.4413C309.359 20.6184 309.949 19.6088 310.879 19.6088H319.178C319.639 19.6088 320.062 19.8724 320.27 20.2899Z" fill="#5A19DA"/>
+</svg>
+      <span class="brand-rule"></span>
+      <span class="brand-txt">
+        <h1 id="brand-h1">Pilot Hypercare</h1>
+        <span class="sub"><span id="brand-sub">Compliance pilot control</span><span class="fresh" id="fresh" hidden><span class="dot"></span><span id="fresh-b"></span></span></span>
+      </span>
+    </div>
+    <button class="btn" id="btn-home">&larr; Pilots</button>
+    <button class="btn" id="btn-findings">AI Findings<span class="cnt" id="fcount">0</span></button>
+    <a class="btn" id="doclink" href="#" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Scoping doc &nearr;</a>
+    <button class="btn" id="btn-config">Configuration</button>
+    <button class="btn" id="btn-data">Data</button>
+    <button class="btn btn-primary" id="btn-pick">Load export</button>
+  </div>
+</div>
+
+<input type="file" id="file" accept=".csv,text/csv" multiple hidden>
+<input type="file" id="cfgfile" accept=".json,application/json" hidden>
+<input type="file" id="snapfile" accept=".json,application/json" hidden>
+
+<main class="app">
+  <div class="setup" id="setup" hidden>
+    <div class="setup-in">
+      <div class="eyebrow">First run</div>
+      <h2>This tool ships without any data</h2>
+      <p>It is an empty analyser. Everything it shows &mdash; which pilots exist, who is on each
+         roster, and which controls are being validated &mdash; comes from a configuration file
+         that your team supplies. Nothing is bundled with the page and nothing is sent anywhere:
+         the configuration and any exports you load stay in this browser.</p>
+      <div class="setup-card">
+        <h3>Load a configuration file</h3>
+        <p style="margin:0">A JSON file describing your pilots, rosters and use-case catalogue.
+           See <code>config.example.json</code> in the repository for the schema and a worked example.</p>
+        <div class="setup-acts">
+          <button class="btn btn-primary" id="btn-cfg-load">Choose configuration&hellip;</button>
+          <button class="btn" id="btn-cfg-sample">Load the bundled example</button>
+        </div>
+        <div class="setup-err" id="setup-err" hidden></div>
+      </div>
+      <div class="setup-card">
+        <h3>Already have a snapshot?</h3>
+        <p style="margin:0">A snapshot exported from another browser or from the hosted version
+           carries its configuration and its accumulated rows together.</p>
+        <div class="setup-acts">
+          <button class="btn" id="btn-snap-load">Import snapshot&hellip;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home" id="home">
+    <div class="home-in">
+      <div class="eyebrow">Compliance pilots</div>
+      <h2>Select a pilot</h2>
+      <div class="prows" id="prows"></div>
+    </div>
+  </div>
+
+  <div class="mxhead" id="mxhead">
+    <div class="mxhead-top">
+      <h2 id="mx-h2">Agent &times; use case</h2>
+      <div class="note" id="window-note">Awaiting data</div>
+    </div>
+    <div class="ctrls" style="margin:0">
+      <label class="tog"><input type="checkbox" id="t-dedupe" checked> Collapse suspected duplicate events</label>
+      <label class="tog" style="margin-left:auto">Days <select id="tz" style="padding:3px 6px;font-size:12px"></select></label>
+      <button class="btn btn-sm" id="btn-pivot">Pivot to use case &times; agent</button>
+    </div>
+  </div>
+  <div class="mx-scroll" id="mx-scroll"></div>
+  <div class="legend" id="legend"></div>
+  <div class="soon" id="soon" hidden>
+    <div class="soon-in">
+      <div class="eyebrow">Not yet configured</div>
+      <h3 id="soon-h"></h3>
+      <p id="soon-p"></p>
+    </div>
+  </div>
+</main>
+
+<div class="ingest" id="drop" hidden>
+  <div class="prog" id="prog" hidden><i id="prog-i"></i></div>
+  <div class="ingest-log" id="ilog"></div>
+</div>
+
+<div class="mscrim" id="mscrim">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="AI findings">
+    <header>
+      <div style="flex:1"><h3>AI findings</h3><div class="sub" id="fsub"></div></div>
+      <button class="btn btn-sm" id="btn-copy">Copy as text</button>
+      <button class="btn btn-sm" id="fx">Close</button>
+    </header>
+    <div class="mbody"><div class="findings" id="findings-list"></div></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Detail">
+  <header><div style="flex:1"><h3 id="dw-t"></h3><div class="sub" id="dw-s"></div></div>
+    <button class="btn btn-sm" id="dw-x">Close</button></header>
+  <div class="body" id="dw-b"></div>
+</aside>
+
+<script>
+"use strict";
+/* ============================================================
+   Pilot Hypercare — a configuration-driven analyser.
+
+   The page ships empty. Pilots, rosters and the use-case
+   catalogue all arrive from a configuration file at run time,
+   so nothing about any particular client is compiled in.
+
+   Scoping key is the PERSON, never the policy id: mod-generated
+   events often ship with an empty policy column, so a policy
+   filter would silently delete controls that do have data.
+   ============================================================ */
+
+let CFG    = null;   // active configuration
+let PILOTS = [];     // CFG.pilots, normalised
+let PILOT  = null;   // active pilot
+
+/* Event types that mean nothing except "this person's browser was on".
+   Configurable because which product generates the noise is a local fact. */
+let HB = {types:new Set(), label:"Filtered"};
+
+const DEFAULT_TZ  = [{id:"UTC", label:"UTC"}];
+const CONFIG_URL  = "./config.json";
+const EXAMPLE_URL = "./config.example.json";
+
+/* ---------- validation ----------
+   A malformed config should say exactly what is wrong. Rendering a
+   blank matrix and letting someone conclude "no data" is worse than
+   refusing to start. */
+function validateConfig(c){
+  if(!c || typeof c!=="object" || Array.isArray(c)) return ["The file is not a JSON object."];
+  const err = [];
+  if(!Array.isArray(c.pilots) || !c.pilots.length){
+    err.push("`pilots` must be a non-empty array.");
+    return err;
+  }
+  c.pilots.forEach((p,i)=>{
+    const at = "pilots[" + i + "]" + (p && p.id ? " (" + p.id + ")" : "");
+    if(!p || typeof p!=="object"){ err.push(at + " is not an object."); return; }
+    if(!p.id)   err.push(at + " is missing `id`.");
+    if(!p.name) err.push(at + " is missing `name`.");
+    if(p.roster  && !Array.isArray(p.roster))  err.push(at + " `roster` must be an array.");
+    if(p.catalog && !Array.isArray(p.catalog)) err.push(at + " `catalog` must be an array.");
+    (Array.isArray(p.roster)?p.roster:[]).forEach((r,j)=>{
+      const rat = at + ".roster[" + j + "]";
+      if(!r || typeof r!=="object"){ err.push(rat + " is not an object."); return; }
+      if(!r.id)   err.push(rat + " is missing `id`.");
+      if(!r.name) err.push(rat + " is missing `name`.");
+      if(!Array.isArray(r.emails) || !r.emails.length)
+        err.push(rat + " needs at least one address in `emails` — addresses are the only way rows are tied to a person.");
+    });
+    (Array.isArray(p.catalog)?p.catalog:[]).forEach((u,j)=>{
+      const uat = at + ".catalog[" + j + "]";
+      if(!u || typeof u!=="object"){ err.push(uat + " is not an object."); return; }
+      if(!u.id)   err.push(uat + " is missing `id`.");
+      if(!u.name) err.push(uat + " is missing `name`.");
+      if(u.signals && !Array.isArray(u.signals)) err.push(uat + " `signals` must be an array.");
+      if(u.groups  && !Array.isArray(u.groups))  err.push(uat + " `groups` must be an array.");
+    });
+    const rids = (Array.isArray(p.roster)?p.roster:[]).map(r=>r&&r.id).filter(Boolean);
+    if(new Set(rids).size !== rids.length) err.push(at + " has duplicate roster `id` values.");
+  });
+  const ids = c.pilots.map(p=>p&&p.id).filter(Boolean);
+  if(new Set(ids).size !== ids.length)
+    err.push("Pilot `id` values must be unique — loaded rows are stored under them.");
+  return err;
+}
+
+/* Fill in every optional field once so the rest of the code never has to guard. */
+function normaliseConfig(c){
+  return {
+    version:   Number(c.version) || 1,
+    title:     c.title    || "Pilot Hypercare",
+    subtitle:  c.subtitle || "Compliance pilot control",
+    adminBase: c.adminBase || "",
+    timezones: Array.isArray(c.timezones) && c.timezones.length ? c.timezones : DEFAULT_TZ,
+    heartbeat: c.heartbeat && typeof c.heartbeat==="object" ? c.heartbeat : null,
+    source:    c.source || "file",
+    loadedAt:  c.loadedAt || Date.now(),
+    pilots: c.pilots.map(p=>({
+      id:p.id, name:p.name,
+      client:p.client||"", status:p.status||"active",
+      team:p.team||"", policy:p.policy||"", deployment:p.deployment||"",
+      doc:p.doc||"", targetExt:p.targetExt||"", soonNote:p.soonNote||"",
+      roster:(p.roster||[]).map(r=>({
+        ...r, emails:(r.emails||[]).map(e=>String(e).trim()).filter(Boolean)
+      })),
+      catalog:(p.catalog||[]).map(u=>({
+        ...u,
+        groups:  u.groups  || [],
+        signals: u.signals || [],
+        status:  u.status  || "live",
+        detect:  u.detect  || "event",
+        unit:    u.unit    || "events",
+        priority:u.priority == null ? 0 : u.priority,
+        enforcement: u.enforcement == null ? "Monitor" : u.enforcement
+      }))
+    }))
+  };
+}
+
+function applyConfig(c){
+  CFG    = c;
+  HB     = c.heartbeat
+    ? {types:new Set(c.heartbeat.eventTypes||[]),
+       label:c.heartbeat.label || "Filtered as liveness-only"}
+    : {types:new Set(), label:"Filtered"};
+  PILOTS = c.pilots;
+  PILOT  = PILOTS[0];
+  S.roster  = PILOT.roster;
+  S.catalog = PILOT.catalog;
+  _globalIx = null;
+  BUCKETS.clear();
+  document.title = CFG.title;
+}
+
+/* ---------- where a configuration comes from ----------
+   A config.json served next to the page is the deployment's own; a
+   manually loaded one belongs to the person sitting here. The served
+   file wins only when it is newer, so a deployment can push an update
+   without silently overwriting someone's local setup. */
+async function fetchJSON(url){
+  try{
+    const r = await fetch(url, {cache:"no-store"});
+    if(!r.ok) return null;
+    return await r.json();
+  }catch(e){ return null; }
+}
+function pickConfig(served, saved){
+  if(!served) return saved;
+  if(!saved)  return served;
+  if(saved.source === "manual")
+    return (Number(served.version)||1) > (Number(saved.version)||1) ? served : saved;
+  return served;
+}
+async function resolveConfig(){
+  const served = await fetchJSON(CONFIG_URL);
+  if(served) served.source = "deployed";
+  const saved = await storedConfig();
+
+  const first = pickConfig(served, saved);
+  const order = [];
+  if(first) order.push(first);
+  [served, saved].forEach(c=>{ if(c && c !== first) order.push(c); });
+
+  let firstErr = null;
+  for(const c of order){
+    const errs = validateConfig(c);
+    if(!errs.length) return {cfg: normaliseConfig(c)};
+    if(!firstErr) firstErr = errs;
+  }
+  return {cfg:null, error:firstErr};
+}
+
+/* ============================ CSV ============================
+   Hand-rolled RFC4180 scanner. The data column holds JSON, so it
+   is full of commas, doubled quotes and can hold newlines; a
+   split(",") shifts every column after it and corrupts the row.
+   ============================================================ */
+function makeCsvScanner(onRow){
+  let field="", row=[], inQ=false, afterQ=false, skipLF=false, bom=true;
+  const endRow=()=>{ row.push(field); field="";
+    if(row.length>1||row[0]!=="") onRow(row); row=[]; };
+  function feed(c){
+    if(inQ){ if(c==='"'){ inQ=false; afterQ=true; } else field+=c; return; }
+    if(afterQ){ afterQ=false; if(c==='"'){ field+='"'; inQ=true; return; } }
+    if(c==='"') inQ=true;
+    else if(c===",") { row.push(field); field=""; }
+    else if(c==="\n") endRow();
+    else if(c==="\r"){ endRow(); skipLF=true; }
+    else field+=c;
+  }
+  return {
+    push(chunk){
+      for(let i=0;i<chunk.length;i++){
+        const c=chunk[i];
+        if(bom){ bom=false; if(c==="\uFEFF") continue; }
+        if(skipLF){ skipLF=false; if(c==="\n") continue; }
+        feed(c);
+      }
+    },
+    end(){ if(inQ||afterQ||field!==""||row.length) endRow(); }
+  };
+}
+
+/* file kind is decided by the header signature, never the filename */
+function kindOf(header){
+  const h=header.map(s=>s.trim());
+  if(h.includes("event_type")&&h.includes("occurred_at")) return "events";
+  if(h.includes("parent_span_id")&&h.includes("focused_ms")) return "spans";
+  return null;
+}
+</script>
+
+<script>
+"use strict";
+/* ======================= state ======================= */
+const S = {
+  roster: [],             // filled by applyConfig()
+  catalog: [],
+  events: new Map(),      // event_id -> normalized record
+  spans:  new Map(),      // trace|span -> normalized record
+  hb:     new Map(),      // personId|day -> count (liveness proxy)
+  uploads: [],
+  drops:  {},             // reason -> count
+  unclassified: new Map(),// security category -> {n, sample}
+  ui:     new Map(),      // unmapped UI event selector/label -> {n, type, hosts}
+  unrostered: new Map(),  // email -> {n, policy}
+  tz: "UTC",
+  view: "home",
+  opts: {dedupe:true, pivot:false},
+  store: null, storeKind: "memory"
+};
+const $ = s => document.querySelector(s);
+const el = (t,c,txt) => { const n=document.createElement(t); if(c)n.className=c; if(txt!=null)n.textContent=txt; return n; };
+const esc = s => String(s==null?"":s);
+const fmtInt = n => n.toLocaleString("en-US");
+
+let _tzf = null, _tzk = null;
+function dayOf(ms){
+  if(S.tz==="UTC") return new Date(ms).toISOString().slice(0,10);
+  if(_tzk!==S.tz){ _tzk=S.tz; _tzf=new Intl.DateTimeFormat("en-CA",{timeZone:S.tz,year:"numeric",month:"2-digit",day:"2-digit"}); }
+  return _tzf.format(new Date(ms));
+}
+/* One export can cover several pilots at once, so ingest routes each row to
+   whichever pilot's roster owns the address. Each pilot keeps its own bucket;
+   S points at the active one, so the rest of the code is unchanged. */
+const BUCKETS = new Map();
+function bucketFor(pid){
+  if(!BUCKETS.has(pid)) BUCKETS.set(pid, {events:new Map(), spans:new Map(), hb:new Map(), uploads:[]});
+  return BUCKETS.get(pid);
+}
+function activate(pid){
+  const b = bucketFor(pid);
+  S.events=b.events; S.spans=b.spans; S.hb=b.hb; S.uploads=b.uploads;
+}
+let _globalIx = null;
+function reindexRoster(){
+  _globalIx = new Map();
+  for(const pilot of PILOTS)
+    for(const person of (pilot.roster||[]))
+      for(const e of person.emails) _globalIx.set(e.trim().toLowerCase(), {pilot, person});
+}
+function ownerOf(email){
+  if(!email) return null;
+  if(!_globalIx) reindexRoster();
+  return _globalIx.get(email.charCodeAt(email.length-1)===32 ? email.trim().toLowerCase() : email.toLowerCase()) || null;
+}
+function personFor(email){
+  const o = ownerOf(email);
+  return o && o.pilot.id===PILOT.id ? o.person : null;
+}
+async function withPilot(pilot, fn){
+  const keep = PILOT;
+  PILOT = pilot; S.roster = pilot.roster||[]; S.catalog = pilot.catalog||[]; activate(pilot.id);
+  try { return await fn(); }
+  finally { PILOT = keep; S.roster = keep.roster||[]; S.catalog = keep.catalog||[]; activate(keep.id); }
+}
+function groupOf(p){ return p ? p.group : null; }
+// Mask and Monitor controls write a log; they never put a modal in front of
+// anyone, so their events can never be "friction".
+const interruptsFor = uc => /Soft Block|Block|Warn/.test(
+  typeof uc.enforcement==="string" ? uc.enforcement : uc.enforcement.def);
+function ucEligible(uc,p){
+  if(uc.status==="disqualified") return false;
+  return uc.groups.includes(groupOf(p));
+}
+function enfFor(uc,p){
+  const e=uc.enforcement;
+  if(typeof e==="string") return e;
+  return (e.by && e.by[groupOf(p)]) || e.def;
+}
+
+/* =================== rule engine ===================
+   Serializable predicate trees, interpreted — never eval'd —
+   so a rule can be edited, exported and pasted back.
+   =================================================== */
+function resolve(rec, path){
+  let v = rec;
+  for(const seg of path.split(".")){ if(v==null) return undefined; v = v[seg]; }
+  return v;
+}
+function regDomain(u){
+  if(!u) return "";
+  try{ return new URL(u).hostname.toLowerCase().replace(/^www\./,""); }
+  catch(e){ return String(u).toLowerCase(); }
+}
+function evalPred(p, rec){
+  if(!p) return false;
+  if(p.all) return p.all.every(q=>evalPred(q,rec));
+  if(p.any) return p.any.some(q=>evalPred(q,rec));
+  if(p.not) return !evalPred(p.not,rec);
+  const v = resolve(rec, p.field);
+  const ci = !!p.ci;
+  const norm = x => ci && typeof x==="string" ? x.toLowerCase() : x;
+  if("eq" in p)   return norm(v)===norm(p.eq);
+  if("ne" in p)   return norm(v)!==norm(p.ne);
+  if("in" in p)   return p.in.some(x=>norm(x)===norm(v));
+  if("anyOf" in p){
+    const arr = Array.isArray(v) ? v : (v==null?[]:[v]);
+    return arr.some(a => p.anyOf.some(b => norm(a)===norm(b)));
+  }
+  if("contains" in p)   return typeof v==="string" && norm(v).includes(norm(p.contains));
+  if("startsWith" in p) return typeof v==="string" && norm(v).startsWith(norm(p.startsWith));
+  if("matches" in p){ try{ return new RegExp(p.matches,ci?"i":"").test(String(v==null?"":v)); }catch(e){ return false; } }
+  if("domainIn" in p){ const d=regDomain(v); return p.domainIn.some(x=>{ const t=x.toLowerCase().replace(/^www\./,""); return d===t||d.endsWith("."+t); }); }
+  if("exists" in p)     return p.exists ? v!=null && v!=="" : (v==null||v==="");
+  return false;
+}
+function ucMatches(uc, rec, src){
+  if(!uc.signals || !uc.signals.length) return false;
+  return uc.signals.some(s => (s.source||"event")===src && evalPred(s.match, rec));
+}
+
+/* ===================== storage =====================
+   Everything lives in this browser. IndexedDB when it is available,
+   memory otherwise; nothing is transmitted and nothing is bundled
+   with the page. A snapshot file is the only way data moves between
+   machines, and moving it is a deliberate act.
+   =================================================== */
+async function initStore(){
+  try{ S.store = await openIDB(); S.storeKind = S.store ? "local" : "memory"; }
+  catch(e){ S.storeKind = "memory"; }
+}
+function openIDB(){
+  return new Promise(res=>{
+    if(!window.indexedDB) return res(null);
+    const r = indexedDB.open("pilot-hypercare",1);
+    r.onupgradeneeded = () => { const d=r.result;
+      ["kv"].forEach(n=>{ if(!d.objectStoreNames.contains(n)) d.createObjectStore(n); }); };
+    r.onsuccess = () => res(r.result);
+    r.onerror   = () => res(null);
+  });
+}
+function idbPut(db,k,v){ return new Promise((res,rej)=>{ const t=db.transaction("kv","readwrite");
+  t.objectStore("kv").put(v,k); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+function idbGet(db,k){ return new Promise(res=>{ const t=db.transaction("kv","readonly");
+  const q=t.objectStore("kv").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>res(undefined); }); }
+function idbDel(db,k){ return new Promise(res=>{ const t=db.transaction("kv","readwrite");
+  t.objectStore("kv").delete(k); t.oncomplete=()=>res(); t.onerror=()=>res(); }); }
+
+const thaw = v => v==null ? v : JSON.parse(JSON.stringify(v));
+
+/* ---------- the configuration itself ---------- */
+const CFG_KEY = "__config";
+async function storedConfig(){
+  if(S.storeKind!=="local") return null;
+  try{ return thaw(await idbGet(S.store, CFG_KEY)) || null; }catch(e){ return null; }
+}
+async function storeConfig(c){
+  if(S.storeKind!=="local") return;
+  try{ await idbPut(S.store, CFG_KEY, c); }catch(e){}
+}
+async function forgetConfig(){
+  if(S.storeKind!=="local") return;
+  try{ await idbDel(S.store, CFG_KEY); }catch(e){}
+}
+
+/* ---------- loaded rows ---------- */
+async function saveAll(){
+  if(!PILOT || PILOT.status!=="active" || S.storeKind!=="local") return;
+  const cfg  = {v:(CFG&&CFG.version)||1, tz:S.tz};
+  const meta = {uploads:S.uploads.slice(-40), drops:S.drops, summary:SUMMARY[PILOT.id]||null,
+                unrostered:[...S.unrostered], hb:[...S.hb]};
+  try{
+    await idbPut(S.store, PILOT.id+":config", cfg);
+    await idbPut(S.store, PILOT.id+":meta",   meta);
+    await idbPut(S.store, PILOT.id+":events", [...S.events.values()]);
+    await idbPut(S.store, PILOT.id+":spans",  [...S.spans.values()]);
+  }catch(e){ console.warn("save failed",e); flash("Could not save: "+(e&&e.message||e)); }
+}
+
+/* Re-resolve every stored row against the CURRENT roster and drop anyone who
+   is no longer on it, so shrinking the roster actually removes their data. */
+function reconcileToRoster(){
+  let dropped=0;
+  for(const map of [S.events, S.spans]){
+    for(const [k,r] of map){
+      const p = personFor(r.email);
+      if(!p){ map.delete(k); dropped++; }
+      else r.pid = p.id;
+    }
+  }
+  for(const k of [...S.hb.keys()])
+    if(!S.roster.some(p=>k.startsWith(p.id+"|"))) S.hb.delete(k);
+  return dropped;
+}
+
+async function loadPilotData(pilot){
+  await withPilot(pilot, async () => {
+    try{
+      if(S.storeKind==="local"){
+        const c = thaw(await idbGet(S.store, pilot.id+":config"));
+        if(c && c.tz) S.tz = c.tz;
+        const m = thaw(await idbGet(S.store, pilot.id+":meta"));
+        if(m){ S.uploads.length=0; (m.uploads||[]).forEach(x=>S.uploads.push(x));
+          S.unrostered = new Map(m.unrostered||[]);
+          (m.hb||[]).forEach(([k,c2])=>S.hb.set(k,c2)); }
+        (await idbGet(S.store, pilot.id+":events") || []).forEach(r=>S.events.set(r.id,r));
+        (await idbGet(S.store, pilot.id+":spans")  || []).forEach(r=>S.spans.set(r.id,r));
+      }
+    }catch(e){ console.warn("load failed",e); }
+    if(reconcileToRoster()) await saveAll();
+    derive();
+    SUMMARY[pilot.id] = {fired:D.firedUcs.length, total:D.covStrict.n,
+      agents:D.agents.length, lastEvent:D.max, days:D.days.length};
+  });
+}
+
+/* after a load, every pilot the export touched is re-derived and persisted */
+async function persistTouched(ids){
+  for(const pid of ids){
+    const pilot = PILOTS.find(x=>x.id===pid);
+    if(!pilot || pilot.status!=="active") continue;
+    await withPilot(pilot, async () => {
+      derive();
+      SUMMARY[pilot.id] = {fired:D.firedUcs.length, total:D.covStrict.n,
+        agents:D.agents.length, lastEvent:D.max, days:D.days.length};
+      await saveAll();
+    });
+  }
+}
+
+/* ===================== snapshots =====================
+   A snapshot is the accumulated, already-normalised result of every
+   export loaded so far, plus the configuration that gives it meaning.
+   It exists because a single CSV export is a window, not a history:
+   rows are merged on event id, so a run of partial exports adds up to
+   something no one export contains. This is how that total travels.
+   ===================================================== */
+const SNAP_KIND = "pilot-hypercare-snapshot";
+
+function buildSnapshot(){
+  const pilots = {};
+  for(const p of PILOTS){
+    if(p.status!=="active") continue;
+    const b = bucketFor(p.id);
+    pilots[p.id] = {
+      events:  [...b.events.values()],
+      spans:   [...b.spans.values()],
+      hb:      [...b.hb.entries()],
+      uploads: b.uploads.slice(-40)
+    };
+  }
+  return {kind:SNAP_KIND, version:1, exportedAt:Date.now(), tz:S.tz,
+          drops:S.drops, unrostered:[...S.unrostered],
+          config:CFG, pilots};
+}
+
+async function applySnapshot(snap){
+  if(!snap || typeof snap!=="object" || snap.kind!==SNAP_KIND)
+    throw new Error("That file is not a Pilot Hypercare snapshot.");
+  if(snap.config){
+    const errs = validateConfig(snap.config);
+    if(errs.length) throw new Error("The snapshot carries an invalid configuration:\n• "+errs.join("\n• "));
+    await storeConfig({...snap.config, source:"manual", loadedAt:Date.now()});
+  }
+  if(S.storeKind!=="local")
+    throw new Error("This browser has no IndexedDB, so a snapshot cannot be stored.");
+  const version = (snap.config && Number(snap.config.version)) || 1;
+  for(const [pid, d] of Object.entries(snap.pilots||{})){
+    await idbPut(S.store, pid+":events", d.events || []);
+    await idbPut(S.store, pid+":spans",  d.spans  || []);
+    await idbPut(S.store, pid+":meta",   {uploads:d.uploads||[], drops:snap.drops||{},
+      summary:null, unrostered:snap.unrostered||[], hb:d.hb||[]});
+    await idbPut(S.store, pid+":config", {v:version, tz:snap.tz||"UTC"});
+  }
+}
+
+function downloadJSON(name, obj){
+  const blob = new Blob([JSON.stringify(obj)], {type:"application/json"});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 30000);
+}
+
+/* ===================== ingest ===================== */
+function bump(o,k){ try{ o[k]=(o[k]||0)+1; }catch(e){ S.drops={...S.drops}; S.drops[k]=(S.drops[k]||0)+1; } }
+const _mc = typeof MessageChannel!=="undefined" ? new MessageChannel() : null;
+function yieldToUI(){
+  if(typeof scheduler!=="undefined" && scheduler.yield) return scheduler.yield();
+  if(_mc) return new Promise(r=>{ _mc.port1.onmessage=()=>r(); _mc.port2.postMessage(0); });
+  return new Promise(r=>setTimeout(r,0));
+}
+async function ingestFile(file, report){
+  const t0 = Date.now();
+  let header=null, kind=null, idx={}, n=0, kept=0, dup=0, conflict=0;
+  let minTs=Infinity, maxTs=-Infinity;
+  const stat = {name:file.name, size:file.size, at:Date.now()};
+  const touched = new Set();
+
+  const onRow = row => {
+    if(!header){ header=row.map(s=>s.trim()); kind=kindOf(header);
+      header.forEach((h,i)=>idx[h]=i); return; }
+    n++;
+    if(row.length!==header.length){ bump(S.drops,"Malformed row (field count)"); return; }
+    if(kind==="events") takeEvent(row);
+    else if(kind==="spans") takeSpan(row);
+  };
+
+  function takeEvent(row){
+    const email = row[idx.email]||"";
+    const type  = row[idx.event_type]||"";
+    // cheapest possible rejection first: in a typical export the overwhelming
+    // majority of rows are heartbeat noise from an unrelated product
+    const own = ownerOf(email);
+    // Liveness-only traffic: counted as a heartbeat, so its author still reads
+    // as "producing telemetry", then dropped before it reaches the catalogue.
+    if(HB.types.has(type)){
+      if(own){ const b=bucketFor(own.pilot.id), d=dayOf(Date.parse(row[idx.occurred_at]));
+               const k=own.person.id+"|"+d; b.hb.set(k,(b.hb.get(k)||0)+1); }
+      bump(S.drops, HB.label);
+      return;
+    }
+    if(!own){
+      const hit = PILOTS.find(x=>x.policy===row[idx.policy]);
+      if(hit){ const e=email.toLowerCase();
+        const u=S.unrostered.get(e)||{n:0,pilot:hit.name}; u.n++; S.unrostered.set(e,u); }
+      bump(S.drops,"Not on roster"); return;
+    }
+    const p = own.person, target = bucketFor(own.pilot.id);
+    touched.add(own.pilot.id);
+    let data={};
+    try{ data = row[idx.data] ? JSON.parse(row[idx.data]) : {}; }
+    catch(e){ bump(S.drops,"Unparseable payload JSON"); data={}; }
+    if(!data || typeof data!=="object") data={};
+    const ts = Date.parse(row[idx.occurred_at]);
+    if(!isFinite(ts)){ bump(S.drops,"Unparseable timestamp"); return; }
+    const rec = {id:row[idx.event_id], email, pid:p.id, ts,
+                 event_type:type, url:row[idx.url]||"", domain:row[idx.domain]||"",
+                 policy:row[idx.policy]||"", data};
+    const prev = target.events.get(rec.id);
+    if(prev){ dup++; if(JSON.stringify(prev.data)!==JSON.stringify(rec.data)) conflict++; return; }
+    target.events.set(rec.id, rec); kept++;
+    if(ts<minTs)minTs=ts; if(ts>maxTs)maxTs=ts;
+  }
+
+  function takeSpan(row){
+    const email = row[idx.email]||"";
+    const own = ownerOf(email);
+    if(!own){ bump(S.drops,"Not on roster"); return; }
+    const p = own.person, target = bucketFor(own.pilot.id);
+    touched.add(own.pilot.id);
+    const ts = Date.parse(row[idx.started_at]);
+    if(!isFinite(ts)){ bump(S.drops,"Unparseable timestamp"); return; }
+    const id = row[idx.trace_id]+"|"+row[idx.span_id];
+    const rec = {id, email, pid:p.id, ts, kind:row[idx.kind], name:row[idx.name],
+      domain:row[idx.domain]||"", hostname:row[idx.hostname]||"",
+      ended:Date.parse(row[idx.ended_at])||ts,
+      focused:+row[idx.focused_ms]||0, idle:+row[idx.idle_ms]||0,
+      active:+row[idx.active_input_ms]||0,
+      level:row[idx.activity_level_pct]===""?null:+row[idx.activity_level_pct],
+      cls:row[idx.classification]||"unrated", policy:row[idx.policy]||""};
+    const prev = target.spans.get(id);
+    // a span in flight at export time is legitimately extended by the next export
+    if(prev && prev.ended>=rec.ended){ dup++; return; }
+    if(prev) dup++;
+    target.spans.set(id, rec); if(!prev) kept++;
+    if(ts<minTs)minTs=ts; if(ts>maxTs)maxTs=ts;
+  }
+
+  const sc = makeCsvScanner(onRow);
+  const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader();
+  let seen=0, lastYield=0;
+  for(;;){
+    const {done, value} = await reader.read();
+    if(done) break;
+    sc.push(value); seen += value.length;
+    if(seen-lastYield > 2_000_000){ lastYield=seen;
+      report({bytes:Math.min(seen,file.size), total:file.size, n, kept});
+      await yieldToUI(); }
+  }
+  sc.end();
+  if(!kind) throw new Error("“"+file.name+"” has no recognisable event or span columns.");
+  Object.assign(stat,{kind, rows:n, kept, dup, conflict, pilots:[...touched],
+    minTs:isFinite(minTs)?minTs:null, maxTs:isFinite(maxTs)?maxTs:null, ms:Date.now()-t0});
+  touched.forEach(pid=>bucketFor(pid).uploads.push(stat));
+  return stat;
+}
+</script>
+
+<script>
+"use strict";
+/* ===================== derive ===================== */
+let D = null;
+function push(m,k,v){ if(!m.has(k)) m.set(k,[]); m.get(k).push(v); }
+
+function derive(){
+  const d = {byUC:new Map(), ambiguous:[], unclass:new Map(), dupKeys:new Map()};
+  S.unclassified = new Map(); S.ui = new Map();
+
+  for(const r of S.events.values()){
+    const hits = S.catalog.filter(uc => uc.status!=="disqualified" && ucMatches(uc,r,"event"));
+    if(!hits.length){
+      if(r.event_type==="security"){
+        const c = (r.data && r.data.category) || "(security, no category)";
+        const u = S.unclassified.get(c) || {n:0, sample:r};
+        u.n++; S.unclassified.set(c,u);
+      } else {
+        const k = (r.data && (r.data.label || r.data.selector)) || "(no selector)";
+        const u = S.ui.get(k) || {n:0, type:r.event_type, hosts:new Set()};
+        u.n++; if(r.domain) u.hosts.add(r.domain); S.ui.set(k,u);
+      }
+      continue;
+    }
+    const excl = hits.filter(u=>u.exclusive);
+    const pool = excl.length ? excl : hits;
+    const win = pool.slice().sort((a,b)=>(b.priority||0)-(a.priority||0))[0];
+    if(pool.length>1) d.ambiguous.push({rec:r, ucs:pool.map(u=>u.id), won:win.id});
+    push(d.byUC, win.id, r);
+  }
+  for(const s of S.spans.values()){
+    for(const uc of S.catalog){
+      if(uc.status==="disqualified") continue;
+      if(ucMatches(uc,s,"span")) push(d.byUC, uc.id, s);
+    }
+  }
+
+  /* duplicate detection — the mod review warns allFrames is inconsistent
+     across Lightning triggers, so identical events arrive more than once */
+  for(const [ucId,rows] of d.byUC){
+    const seen = new Map();
+    for(const r of rows){
+      if(!r.event_type) continue;              // spans are not deduped
+      const k = r.pid+"|"+ucId+"|"+Math.floor(r.ts/1000)+"|"+(r.url||"");
+      const c = (seen.get(k)||0)+1; seen.set(k,c);
+      r.__dup = c>1;
+    }
+    d.dupKeys.set(ucId, rows.filter(r=>r.__dup).length);
+  }
+  d.dupTotal = [...d.dupKeys.values()].reduce((a,b)=>a+b,0);
+
+  const live = r => !(S.opts.dedupe && r.__dup);
+  d.rowsFor = (ucId, pid) => (d.byUC.get(ucId)||[]).filter(r => live(r) && (!pid || r.pid===pid));
+
+  /* window & coverage days */
+  const all = [...S.events.values(), ...S.spans.values()];
+  d.min = all.length ? Math.min(...all.map(r=>r.ts)) : null;
+  d.max = all.length ? Math.max(...all.map(r=>r.ts)) : null;
+  d.days = [...new Set(all.map(r=>dayOf(r.ts)))].sort();
+  d.gaps = [];
+  if(d.days.length>1){
+    const one=864e5, a=new Date(d.days[0]+"T00:00:00Z").getTime(), b=new Date(d.days[d.days.length-1]+"T00:00:00Z").getTime();
+    for(let t=a;t<=b;t+=one){ const k=new Date(t).toISOString().slice(0,10); if(!d.days.includes(k)) d.gaps.push(k); }
+  }
+  d.partialDay = d.days.length ? d.days[d.days.length-1] : null;
+  d.hasData = all.length>0 || S.hb.size>0;
+
+  /* per-person telemetry presence */
+  d.agents = S.roster;
+  d.tel = new Map();
+  for(const p of S.roster){
+    let n=0, last=null, hb=0;
+    for(const r of S.events.values()) if(r.pid===p.id){ n++; if(!last||r.ts>last) last=r.ts; }
+    for(const r of S.spans.values())  if(r.pid===p.id){ n++; if(!last||r.ts>last) last=r.ts; }
+    for(const [k,v] of S.hb) if(k.startsWith(p.id+"|")) hb+=v;
+    d.tel.set(p.id, {n, last, hb, live: n>0 || hb>0});
+  }
+
+  /* matrix */
+  d.ucs = S.catalog.filter(uc => uc.status!=="disqualified");
+  d.blocks = [
+    {key:"observed",  label:"Instrumented · observed",
+     ucs:d.ucs.filter(u=>u.status==="live" && u.detect!=="none" && d.rowsFor(u.id).length>0)},
+    {key:"awaiting",  label:"Instrumented · awaiting signal",
+     ucs:d.ucs.filter(u=>u.status==="live" && u.detect!=="none" && d.rowsFor(u.id).length===0)},
+    {key:"nosignal",  label:"On hold / not observable",
+     ucs:d.ucs.filter(u=>u.status!=="live" || u.detect==="none")}
+  ].filter(b=>b.ucs.length);
+
+  d.cell = (p,uc) => {
+    if(!ucEligible(uc,p)) return {st:"nel", g:"", n:0};
+    if(uc.status==="hold")    return {st:"hold", g:"‖", n:0};
+    if(uc.status==="blocked") return {st:"blocked", g:"✕", n:0};
+    if(uc.detect==="none")   return {st:"notel", g:"✓", n:0};
+    if(!d.hasData)           return {st:"nodata", g:"·", n:0};
+    const rows = d.rowsFor(uc.id, p.id);
+    const n = rows.length;
+    if(n>0) return {st:"fired", g:"●", n, rows};
+    const t = d.tel.get(p.id);
+    if(!t || !t.live) return {st:"nocov", g:"?", n:0};
+    return {st:"silent-gap", g:"○", n:0};
+  };
+
+  /* coverage denominator: assigned, live, and able to emit an event */
+  d.denomFor = p => S.catalog.filter(uc => ucEligible(uc,p) && uc.status==="live");
+  d.rowCov = p => { const den=d.denomFor(p);
+    // a control that cannot emit an event counts as working until verified by hand
+    return {k:den.filter(uc=>uc.detect==="none"||d.rowsFor(uc.id,p.id).length>0).length, n:den.length}; };
+
+  const inScope  = S.catalog.filter(u=>u.status!=="disqualified");
+  const liveUcs  = inScope.filter(u=>u.status==="live");
+  const detect   = liveUcs.filter(u=>u.detect!=="none");
+  d.firedUcs = inScope.filter(u=>u.detect==="none"||d.rowsFor(u.id).length>0);
+  d.covStrict = {k:d.firedUcs.length, n:inScope.filter(u=>u.status!=="hold").length};
+  d.covAdj    = {k:d.firedUcs.length, n:inScope.filter(u=>u.status!=="hold").length};
+  d.blocked   = inScope.filter(u=>u.status==="blocked");
+
+  /* friction */
+  d.friction = liveUcs.filter(u=>u.detect==="event").map(uc=>{
+    const rows = d.rowsFor(uc.id);
+    const interrupts = interruptsFor(uc);
+    let complied=0, backed=0, hard=0;
+    rows.forEach(r=>{ const x=r.data||{};
+      if(!interrupts) return;
+      // a dismissal IS the agent backing off — its outcome is naturally "block",
+      // so this test has to come before the outcome test
+      if(x.interventionResponse==="dismissed") backed++;
+      else if(x.interventionResponse==="acknowledged"||x.interventionResponse==="justified") complied++;
+      else if(x.outcome==="block"||x.action==="block") hard++;
+      else if(x.outcome==="allowed") complied++;
+    });
+    const graded = complied+backed+hard;
+    const activeAgents = d.agents.filter(p=>d.tel.get(p.id)&&d.tel.get(p.id).live).length||1;
+    const dayCount = Math.max(1,d.days.length);
+    return {uc, total:rows.length, complied, backed, hard, graded, interrupts,
+            load: graded/activeAgents/dayCount};
+  }).filter(f=>f.total>0).sort((a,b)=>b.total-a.total);
+
+  /* justification re-use — a cheap proxy for rubber-stamping */
+  const just = new Map();
+  for(const r of S.events.values()){
+    const j = r.data && r.data.justification;
+    if(!j) continue;
+    const k = String(j).trim().toLowerCase();
+    const u = just.get(k)||{n:0, text:String(j).trim(), who:new Set()};
+    u.n++; u.who.add(r.pid); just.set(k,u);
+  }
+  d.justRepeat = [...just.values()].filter(u=>u.n>1).sort((a,b)=>b.n-a.n);
+  D = d; return d;
+}
+
+/* ===================== findings ===================== */
+function findings(){
+  const out=[];
+  const agents=D.agents;
+  const silentAgents = agents.filter(p=>{ const t=D.tel.get(p.id); return !t||!t.live; });
+  const notProvisioned = silentAgents.filter(p=>!p.ready||!p.ready.login);
+
+  if(!D.hasData){ out.push({sev:"warning",tag:"No data",t:"No export loaded yet",
+    d:"Drop the events and spans CSVs above. Until then the matrix shows the roster and the controls assigned to it, with every cell awaiting data."}); return out; }
+
+  if(silentAgents.length) out.push({sev:"critical", tag:"Activation",
+    t:silentAgents.length+" of "+agents.length+" roster agents have produced no telemetry at all",
+    d:silentAgents.map(p=>p.name).join(", ")+". "+(notProvisioned.length?
+      notProvisioned.length+" of them are not marked as signed in on the readiness checklist, so this is a provisioning gap rather than an agent-behaviour gap.":
+      "All are marked signed in, so check the extension version and group membership.")});
+
+  const gapCells=[];
+  D.agents.forEach(p=>S.catalog.forEach(uc=>{
+    if(D.cell(p,uc).st==="silent-gap") gapCells.push([p,uc]); }));
+  const byUc=new Map(); gapCells.forEach(([p,uc])=>push(byUc,uc.id,p));
+  const wholeSilent=[...byUc.entries()].filter(([id,ps])=>
+    ps.length===D.agents.filter(p=>D.tel.get(p.id)&&D.tel.get(p.id).live).length);
+  if(wholeSilent.length) out.push({sev:"critical", tag:"Coverage",
+    t:wholeSilent.length+" control"+(wholeSilent.length>1?"s have":" has")+" never fired for any active agent",
+    d:wholeSilent.map(([id])=>{ const u=S.catalog.find(x=>x.id===id);
+      return id+" "+u.name+(u.confidence==="inferred"?" (rule inferred — may be a rule gap, not a behaviour gap)":""); }).join(" · ")+
+      ". Check the policy attachment and the detection rule before treating these as adoption problems."});
+
+
+  if(D.dupTotal){
+    const worst=[...D.dupKeys.entries()].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    out.push({sev:"serious", tag:"Noise",
+      t:fmtInt(D.dupTotal)+(D.dupTotal===1?" event is an exact repeat":" events are exact repeats")+
+        " within the same second",
+      d:worst.map(([id,v])=>id+" ("+fmtInt(v)+")").join(" · ")+
+        ". Inconsistent allFrames across triggers makes a control fire once per frame, so raw counts overstate what happened. "+
+        (S.opts.dedupe?"They are collapsed in the counts above.":"They are being counted — turn on duplicate collapsing to see the real figures.")});
+  }
+
+  const watch=D.friction.find(f=>f.uc.watch);
+  if(watch) out.push({sev:"warning", tag:"Friction",
+    t:watch.uc.id+" is interrupting each active agent "+watch.load.toFixed(1)+" times a day",
+    d:watch.uc.watch+" Of "+watch.graded+" graded responses, "+watch.backed+" were dismissed and "+watch.hard+" were hard blocks. This is the evidence for the soft-block-to-warn decision."});
+
+  const target = PILOT && PILOT.targetExt;
+  const staleExt = target ? D.agents.filter(p=>p.ready&&p.ready.ext&&p.ready.ext!==target) : [];
+  if(staleExt.length) out.push({sev:"warning", tag:"Readiness",
+    t:(staleExt.length===1 ? staleExt[0].name+" is on extension "
+                           : "All "+staleExt.length+" provisioned agents are on extension ")+
+      staleExt[0].ready.ext+", not the "+target+" target",
+    d:"UAT was meant to run on "+target+". Re-verify the controls that were only ever confirmed on "+staleExt[0].ready.ext+"."});
+
+  if(D.gaps.length) out.push({sev:"warning", tag:"Data",
+    t:D.gaps.length+" day"+(D.gaps.length>1?"s":"")+" inside the loaded range have no data at all",
+    d:D.gaps.join(", ")+". These are gaps in what has been loaded, not quiet days — do not read them as zero activity."});
+
+  if(D.justRepeat.length) out.push({sev:"warning", tag:"Attestation",
+    t:"Repeated identical justifications suggest attestations are being rubber-stamped",
+    d:D.justRepeat.slice(0,3).map(u=>"“"+u.text+"” ×"+u.n).join(" · ")+
+      ". A justification field that always receives the same string is not producing an audit trail."});
+
+  D.friction.filter(f=>f.uc.risk && f.total>0).forEach(f=>out.push({sev:"serious", tag:"Risk event",
+    t:f.uc.id+" "+f.uc.name+" fired "+f.total+" times — each one is an attempted violation",
+    d:f.complied+" proceeded after attesting, "+f.backed+" backed off, "+f.hard+" were hard-blocked."}));
+  S.catalog.filter(u=>u.issue).forEach(u=>out.push({sev:"warning", tag:"Open defect",
+    t:u.id+" has an open mod defect", d:u.issue}));
+  S.catalog.filter(u=>u.status==="hold").forEach(u=>out.push({sev:"warning", tag:"On hold",
+    t:u.id+" "+u.name+" is on hold and cannot fire yet",
+    d:u.hold+" It is out of the coverage denominator until the dependency lands, so it neither helps nor hurts the score."}));
+
+  if(S.unclassified.size) out.push({sev:"warning", tag:"Rules",
+    t:S.unclassified.size+" in-scope security categor"+(S.unclassified.size>1?"ies match no rule":"y matches no rule"),
+    d:[...S.unclassified.entries()].map(([c,u])=>c+" ("+u.n+")").join(", ")+". These are controls firing that no rule claims. An upstream category rename would zero a matrix column and read as an adoption problem; map them in the catalog."});
+
+  if(S.ui.size) out.push({sev:"good", tag:"Expansion",
+    t:(n=>fmtInt(n)+(n===1?" in-scope click or field edit is captured but mapped to no control"
+                           :" in-scope clicks and field edits are captured but mapped to no control"))
+       ([...S.ui.values()].reduce((a,u)=>a+u.n,0)),
+    d:"Controls that have never fired may still be detectable here. These rows are already being captured, so the missing triggers are most likely findable in the button_click and field_touch streams of the raw export."});
+
+  const order={critical:0,serious:1,warning:2,good:3};
+  return out.sort((a,b)=>order[a.sev]-order[b.sev]).slice(0,9);
+}
+</script>
+
+<script>
+"use strict";
+/* ===================== small helpers ===================== */
+function flash(msg){ const l=$("#ilog"); l.hidden=false; l.textContent=msg; }
+function ago(ms){ if(!ms) return "—";
+  const s=(Date.now()-ms)/1000;
+  if(s<3600) return Math.max(1,Math.round(s/60))+" min ago";
+  if(s<86400) return Math.round(s/3600)+" h ago";
+  return Math.round(s/86400)+" d ago"; }
+function fmtDay(d){ return d ? new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "—"; }
+function fmtTs(ms){ return new Date(ms).toISOString().replace("T"," ").slice(0,19)+"Z"; }
+// card-shaped values are always masked — justifications and messages can carry
+// customer data, and nothing on this page needs the digits
+function maskCard(s){
+  return String(s).replace(/\b\d(?:[ -]?\d){11,18}\b/g,"•••• masked")
+                  .replace(/\b\d{4}\b(?=\s*$)/,"••••");
+}
+const ENF_ABBR = {"Watermark + Warn":"MARK","Soft Block":"SOFT","Monitor":"MON",
+  "Warn":"WARN","Block":"BLOCK","Mask":"MASK","None":"—"};
+const STATES = {
+  fired:      ["●","Fired",             "Control fired for this agent"],
+  "silent-gap":["○","Silent — gap",     "Agent is producing telemetry, but this control has never fired for them"],
+  nocov:      ["?","No telemetry",      "This agent has produced no telemetry at all in the window"],
+  notel:      ["✓","Not observable — assumed working", "This control cannot emit an activity event, so it counts as working until someone verifies it by hand"],
+  hold:       ["‖","On hold",            "Held back by a dependency, so it cannot fire yet — not counted for or against coverage"],
+  blocked:    ["✕","Blocked",           "A defect stops this control from firing at all"],
+  nel:        ["","Not assigned",       "This control is not assigned to the agent's group"],
+  nodata:     ["·","Awaiting data",     "No export loaded yet"]
+};
+
+/* ===================== window line ===================== */
+function renderWindow(){
+  const wn=$("#window-note");
+  if(!D.hasData){ wn.textContent="Awaiting data"; wn.title=""; return; }
+  const a=D.days[0], b=D.days[D.days.length-1];
+  wn.textContent = a===b ? fmtDay(a) : fmtDay(a)+" – "+fmtDay(b);
+  wn.title = D.days.length+" day"+(D.days.length>1?"s":"")+" with data"+
+    (D.gaps.length?" · "+D.gaps.length+" day"+(D.gaps.length>1?"s":"")+" inside the range have none":"")+
+    " · bucketed in "+S.tz+"\n"+D.covStrict.k+" of "+D.covStrict.n+" controls exercised"+
+    (D.dupTotal?" · "+fmtInt(D.dupTotal)+" duplicate events"+(S.opts.dedupe?" collapsed":" counted"):"");
+}
+
+/* ===================== findings ===================== */
+function openFindings(){ $("#mscrim").classList.add("open"); $("#fx").focus(); }
+function closeFindings(){ $("#mscrim").classList.remove("open"); }
+function renderFindings(){
+  const box=$("#findings-list"); box.innerHTML="";
+  const list=findings();
+  $("#fcount").textContent=list.length;
+  const worst=list[0] && list[0].sev;
+  $("#btn-findings").classList.toggle("btn-primary", worst==="critical");
+  $("#fsub").textContent = D.hasData
+    ? "Generated from the loaded export · "+fmtDay(D.days[0])+" – "+fmtDay(D.days[D.days.length-1])
+    : "No export loaded yet";
+  if(!list.length){ box.append(el("div","empty","Nothing to flag.")); return; }
+  list.forEach(f=>{
+    const n=el("div","finding");
+    n.append(el("div","sev "+f.sev));
+    const m=el("div"); m.append(el("div","t",f.t), el("div","d",f.d)); n.append(m);
+    n.append(el("div","tag",f.tag));
+    box.append(n);
+  });
+}
+function findingsText(){
+  const head = (PILOT?PILOT.name+" ":"")+(CFG?CFG.title:"Pilot Hypercare");
+  return head+" — "+(D.hasData?fmtDay(D.days[0])+" to "+fmtDay(D.days[D.days.length-1]):"no data")+"\n\n"+
+    findings().map((f,i)=>(i+1)+". ["+f.sev.toUpperCase()+"] "+f.t+"\n   "+f.d).join("\n\n");
+}
+
+/* ===================== matrix ===================== */
+function cellNode(p, uc){
+  const cell = D.cell(p,uc);
+  const td = el("td","cell");
+  const box = el("div","cellbox st-"+cell.st+(cell.n?" clickable":""));
+  box.append(el("span","g",cell.g));
+  if(cell.n) box.append(el("span","c", cell.n>99?"99+":String(cell.n)));
+  const meta = STATES[cell.st];
+  box.title = p.name+" × "+uc.id+" "+uc.name+"\n"+meta[1]+
+              (cell.n?" — "+cell.n+" "+uc.unit:"")+"\n"+meta[2];
+  if(cell.n){
+    box.tabIndex=0; box.setAttribute("role","button");
+    const open=()=>openCell(p,uc);
+    box.onclick=open;
+    box.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(); } };
+  }
+  td.append(box); return td;
+}
+const enfOf = uc => typeof uc.enforcement==="string" ? uc.enforcement : uc.enforcement.def;
+function ucTitle(uc){
+  return uc.id+" — "+uc.name+"\n"+enfOf(uc)+" · "+uc.system+" · "+uc.impl+"\n"+
+    (uc.confidence==="inferred"?"Rule INFERRED — never confirmed against a real event.\n":"")+
+    (uc.hold?"ON HOLD: "+uc.hold+"\n":"")+
+    (uc.note||"")+(uc.issue?"\nOPEN DEFECT: "+uc.issue:"");
+}
+function ucCov(uc){
+  if(uc.status!=="live") return null;
+  const elig = D.agents.filter(p=>ucEligible(uc,p));
+  if(uc.detect==="none") return {k:elig.length, n:elig.length};
+  return {k:elig.filter(p=>D.rowsFor(uc.id,p.id).length>0).length, n:elig.length};
+}
+function covCell(cov, tip){
+  const td=el("td","cov");
+  td.textContent = cov && cov.n ? cov.k+"/"+cov.n : "—";
+  td.style.color = !(cov&&cov.n) ? "var(--ink-3)"
+    : cov.k/cov.n>=.8 ? "var(--good)" : cov.k ? "var(--warning)" : "var(--critical)";
+  td.title=tip; return td;
+}
+
+function buildNormal(tbl){
+  const cols=[];
+  D.blocks.forEach((b,i)=>{ if(i) cols.push({gap:true}); b.ucs.forEach(uc=>cols.push({uc})); });
+
+  const thead=el("thead"), r1=el("tr");
+  const ah=el("th","agent"); ah.rowSpan=2; ah.append(el("div","eyebrow","Agent")); r1.append(ah);
+  D.blocks.forEach((b,i)=>{
+    if(i){ const g=el("th","blockgap"); g.rowSpan=2; r1.append(g); }
+    const th=el("th","blocklabel"); th.colSpan=b.ucs.length; th.textContent=b.label; r1.append(th);
+  });
+  const ch=el("th","cov"); ch.rowSpan=2; ch.append(el("div","eyebrow","Cov")); r1.append(ch);
+
+  const r2=el("tr");
+  cols.filter(c=>!c.gap).forEach(({uc})=>{
+    const th=el("th","uc-h"+(uc.confidence==="inferred"?" unverified":""));
+    th.append(el("div","code",uc.id));
+    th.append(el("div","enf", ENF_ABBR[enfOf(uc)] || enfOf(uc).toUpperCase().slice(0,5)));
+    th.append(el("div","ucname", uc.name));
+    th.title=ucTitle(uc);
+    r2.append(th);
+  });
+  thead.append(r1,r2); tbl.append(thead);
+
+  const tbody=el("tbody");
+  D.agents.forEach(p=>{
+    const t=D.tel.get(p.id)||{};
+    const tr=el("tr", t.live?"":"dim");
+    const td=el("td","agent");
+    const nm=el("div","a-name"); nm.append(document.createTextNode(p.name));
+    if(p.emails.length>1) nm.append(el("span","badge alias","alias ×"+p.emails.length));
+    const mt=el("div","a-meta");
+    mt.append(document.createTextNode(p.lob+" · "+p.site));
+    mt.append(el("span","badge",p.group));
+    td.append(nm,mt);
+    td.title=p.emails.join("\n")+(t.last?"\nlast seen "+fmtTs(t.last):"\nno telemetry");
+    tr.append(td);
+    cols.forEach(c=>{ if(c.gap){ tr.append(el("td","blockgap")); return; } tr.append(cellNode(p,c.uc)); });
+    const cv=D.rowCov(p);
+    tr.append(covCell(cv, cv.k+" of "+cv.n+" live controls assigned to "+p.name+" are working — "+
+      "either an event proved it fired, or the control cannot emit one and is assumed working."));
+    tbody.append(tr);
+  });
+  tbl.append(tbody);
+}
+
+function buildPivot(tbl){
+  const agents=D.agents;
+  // auto layout hands all the surplus width to the widest column (the use-case
+  // labels), which starves the cells. Fixed layout + a colgroup splits it evenly.
+  tbl.style.tableLayout="fixed";
+  const cg=el("colgroup");
+  const c1=el("col"); c1.style.width="340px"; cg.append(c1);
+  agents.forEach(()=>cg.append(el("col")));
+  const c2=el("col"); c2.style.width="120px"; cg.append(c2);
+  tbl.append(cg);
+  const thead=el("thead"), r=el("tr");
+  const uh=el("th","uc-row"); uh.append(el("div","eyebrow","Use case")); r.append(uh);
+  agents.forEach(p=>{
+    const t=D.tel.get(p.id)||{};
+    const th=el("th","ag-h");
+    th.append(el("div","an",p.name));
+    th.append(el("div","al",p.lob+" · "+p.group));
+    th.title=p.emails.join("\n")+(t.last?"\nlast seen "+fmtTs(t.last):"\nno telemetry");
+    r.append(th);
+  });
+  const ch=el("th","cov"); ch.append(el("div","eyebrow","Agents")); r.append(ch);
+  thead.append(r); tbl.append(thead);
+
+  const tbody=el("tbody");
+  D.blocks.forEach(b=>{
+    const gr=el("tr","grouprow"), gtd=el("td");
+    gtd.colSpan=agents.length+2; gtd.textContent=b.label; gr.append(gtd); tbody.append(gr);
+    b.ucs.forEach(uc=>{
+      const tr=el("tr");
+      const rc=el("td","uc-row"+(uc.confidence==="inferred"?" unverified":""));
+      const l1=el("div","l1");
+      l1.append(el("span","code",uc.id), el("span","nm",uc.name));
+      rc.append(l1);
+      const l2=el("div","l2");
+      l2.append(document.createTextNode(enfOf(uc)+" · "+uc.impl));
+      if(uc.risk) l2.append(el("span","badge","risk event"));
+      if(uc.confidence==="inferred") l2.append(el("span","badge","inferred rule"));
+      if(uc.status==="hold") l2.append(el("span","badge","on hold"));
+      if(uc.status==="blocked") l2.append(el("span","badge","blocked"));
+      if(uc.detect==="none") l2.append(el("span","badge","no telemetry"));
+      rc.append(l2);
+      rc.title=ucTitle(uc);
+      tr.append(rc);
+      agents.forEach(p=>tr.append(cellNode(p,uc)));
+      const cv=ucCov(uc);
+      tr.append(covCell(cv, cv
+        ? (uc.detect==="none"
+            ? "Cannot emit an activity event — counted as working for all "+cv.n+" agents until verified by hand."
+            : "Exercised by "+cv.k+" of the "+cv.n+" agents this control is assigned to.")
+        : "Not counted: "+(uc.status==="hold" ? "on hold" : "not deployed")+"."));
+      tbody.append(tr);
+    });
+  });
+  tbl.append(tbody);
+}
+
+function renderLegend(){
+  const seen=new Set();
+  D.agents.forEach(p=>D.ucs.forEach(uc=>seen.add(D.cell(p,uc).st)));
+  const lg=$("#legend"); lg.innerHTML="";
+  Object.entries(STATES).forEach(([k,v])=>{
+    if(!seen.has(k)) return;
+    const li=el("div","li");
+    const sw=el("span","sw st-"+k); sw.textContent=v[0];
+    li.append(sw, document.createTextNode(v[1]));
+    li.title=v[2]; lg.append(li);
+  });
+}
+
+function renderMatrix(){
+  const host=$("#mx-scroll"); host.innerHTML="";
+  const tbl=el("table","mx");
+  if(S.opts.pivot){ tbl.classList.add("mx-pivot"); buildPivot(tbl); }
+  else { tbl.style.tableLayout="auto"; buildNormal(tbl); }
+  host.append(tbl);
+  renderLegend();
+  $("#mx-h2").textContent = S.opts.pivot ? "Use case × agent" : "Agent × use case";
+  $("#btn-pivot").textContent = S.opts.pivot ? "Pivot to agent × use case" : "Pivot to use case × agent";
+
+}
+</script>
+
+<script>
+"use strict";
+
+/* ===================== drawer ===================== */
+function showDrawer(title,sub,build){
+  $("#dw-t").textContent=title; $("#dw-s").textContent=sub;
+  const b=$("#dw-b"); b.innerHTML=""; build(b);
+  $("#drawer").classList.add("open"); $("#scrim").classList.add("open");
+  $("#dw-x").focus();
+}
+function closeDrawer(){ $("#drawer").classList.remove("open"); $("#scrim").classList.remove("open"); }
+function ruleText(uc){
+  if(!uc.signals||!uc.signals.length) return "No detection rule — this control cannot emit an activity event.";
+  return uc.signals.map(s=>(s.source||"event").toUpperCase()+"  "+JSON.stringify(s.match,null,2)).join("\n\n");
+}
+function openCell(p,uc){
+  const rows=D.rowsFor(uc.id,p.id).slice().sort((a,b)=>b.ts-a.ts);
+  showDrawer(p.name+" × "+uc.id, uc.name+" · "+enfFor(uc,p)+" · "+rows.length+" "+uc.unit, b=>{
+    b.append(el("div","eyebrow","Matched by"));
+    const r=el("div","rulebox"); r.style.marginTop="10px"; r.textContent=ruleText(uc); b.append(r);
+    const others=[...new Set(D.rowsFor(uc.id).map(x=>x.pid))].length;
+    const ctx=el("p"); ctx.style.cssText="font-size:12px;color:var(--ink-3);margin:0 0 14px";
+    ctx.textContent="This control has fired for "+others+" "+(others===1?"person":"people")+" in the loaded window.";
+    b.append(ctx);
+    b.append(el("div","eyebrow","Events"));
+    rows.slice(0,80).forEach(rec=>{
+      const x=rec.data||{}, n=el("div","evt");
+      const top=el("div","top");
+      top.append(el("span","ts",fmtTs(rec.ts)));
+      const kind=(x.outcome==="block"||x.action==="block")?"critical":x.interventionResponse==="dismissed"?"warning":x.outcome?"good":"neutral";
+      const pl=el("span","pill "+kind);
+      pl.textContent=(x.outcome==="block"||x.action==="block")?"blocked":(x.interventionResponse||x.outcome||x.action||"logged");
+      top.append(pl);
+      if(x.category){ const c=el("span","pill neutral"); c.textContent=x.category; top.append(c); }
+      if(rec.__dup){ const c=el("span","pill warning"); c.textContent="duplicate"; top.append(c); }
+      n.append(top);
+      if(x.message){ n.append(el("div","msg",maskCard(x.message))); }
+      if(rec.url){ const u=el("div","msg"); u.style.fontFamily="var(--f-mono)"; u.style.fontSize="11px";
+        u.textContent=rec.url.slice(0,140); n.append(u); }
+      if(x.justification){ const j=el("div","just"); j.textContent=maskCard(x.justification); n.append(j); }
+      b.append(n);
+    });
+    if(rows.length>80){ const m=el("p"); m.style.cssText="font-size:12px;color:var(--ink-3);padding-top:12px";
+      m.textContent="Showing the 80 most recent of "+rows.length+"."; b.append(m); }
+  });
+}
+</script>
+
+<script>
+"use strict";
+/* ===================== orchestration ===================== */
+const SUMMARY = {};
+let STORE_NOTE = "";
+
+
+function renderHome(){
+  const box=$("#prows"); box.innerHTML="";
+  PILOTS.forEach(p=>{
+    const sum=SUMMARY[p.id], configured=(p.catalog||[]).length>0;
+    const b=el("button","prow"); b.type="button";
+    const left=el("span");
+    left.append(el("span","pname",p.name));
+    left.append(el("span","pmeta", p.client+(p.policy?" · policy "+p.policy.slice(0,8):"")));
+    b.append(left);
+    if(configured && sum && sum.total){
+      const pct=Math.round(sum.fired/sum.total*100);
+      const bar=el("span","pbar"), i=el("i");
+      i.style.width=Math.max(pct,2)+"%";
+      i.style.background = pct>=80?"var(--good)" : pct>0?"var(--warning)" : "var(--critical)";
+      bar.append(i); b.append(bar);
+      const fr=el("span","pfrac");
+      fr.append(document.createTextNode(String(sum.fired)));
+      const sm=el("small"); sm.textContent="/"+sum.total; fr.append(sm);
+      fr.append(el("span","plbl","use cases live"));
+      b.append(fr);
+    } else {
+      b.append(el("span"));
+      b.append(el("span","ptag", configured ? "no data yet" : "not configured"));
+    }
+    b.append(el("span","pgo","→"));
+    b.onclick=()=>openPilot(p.id);
+    box.append(b);
+  });
+}
+
+function renderView(){
+  const setup = S.view==="setup";
+  const home  = S.view==="home";
+  $("#setup").hidden = !setup;
+  $("#home").hidden  = !home;
+  ["#btn-home","#btn-findings","#doclink"].forEach(k=>{ const e=$(k); if(e) e.hidden = home||setup; });
+  ["#btn-pick","#btn-config","#btn-data"].forEach(k=>{ const e=$(k); if(e) e.hidden = !home; });
+  if(setup){
+    $("#brand-h1").textContent = "Pilot Hypercare";
+    $("#brand-sub").textContent = "Not configured";
+    $("#fresh").hidden = true;
+    ["#mxhead","#mx-scroll","#legend","#soon"].forEach(k=>$(k).hidden=true);
+    return;
+  }
+  if(home){
+    $("#brand-h1").textContent = CFG ? CFG.title : "Pilot Hypercare";
+    $("#brand-sub").textContent = (CFG ? CFG.subtitle : "") + STORE_NOTE;
+    ["#mxhead","#mx-scroll","#legend","#soon"].forEach(k=>$(k).hidden=true);
+    renderHome(); renderFresh();
+  }
+}
+function openPilot(id){ S.view="pilot"; renderView(); switchPilot(id); }
+function goHome(){ S.view="home"; renderView(); }
+
+function renderPilot(){
+  if(S.view==="home") return;
+  const on = PILOT.status==="active";
+  $("#brand-h1").textContent = PILOT.name+" Pilot Hypercare";
+  const sub=$("#brand-sub"); sub.innerHTML="";
+  const base = (CFG.adminBase && PILOT.team)
+    ? CFG.adminBase.replace(/\/+$/,"") + "/" + PILOT.team + "/" : null;
+  const parts = [];
+  const admin = (label, kind, id) => {
+    if(!base || !id) return;
+    const a=el("a",null,label+" ↗");
+    a.href=base+kind+"/"+id; a.target="_blank"; a.rel="noopener noreferrer";
+    a.title=a.href; parts.push(a);
+  };
+  admin("Deployment","deployments",PILOT.deployment);
+  admin("Policy","policies",PILOT.policy);
+  parts.forEach((node,i)=>{ if(i) sub.append(document.createTextNode(" · ")); sub.append(node); });
+  if(STORE_NOTE) sub.append(document.createTextNode(parts.length ? STORE_NOTE : STORE_NOTE.replace(/^ · /,"")));
+  // with nothing to its left the divider before the age would float at the margin
+  $("#fresh").classList.toggle("bare", !sub.textContent.trim());
+  const dl=$("#doclink");
+  if(PILOT.doc){ dl.href=PILOT.doc; dl.hidden=false; } else { dl.hidden=true; }
+  ["#mxhead","#mx-scroll","#legend"].forEach(k=>$(k).hidden=!on);
+  $("#soon").hidden = on;
+  $("#fresh").hidden = !on;
+  $("#btn-findings").disabled = !on;
+  $("#btn-pick").disabled = !on;
+  if(!on){
+    $("#soon-h").textContent = PILOT.name+" is not wired up yet";
+    $("#soon-p").textContent = PILOT.soonNote || "";
+  }
+  $("#home").hidden = true;
+}
+function switchPilot(id){
+  PILOT = PILOTS.find(x=>x.id===id) || PILOTS[0];
+  S.roster  = PILOT.roster  || [];
+  S.catalog = PILOT.catalog || [];
+  activate(PILOT.id);
+  renderAll();
+}
+
+function renderAll(){
+  derive();
+  SUMMARY[PILOT.id] = {fired:D.firedUcs.length, total:D.covStrict.n,
+    agents:D.agents.length, lastEvent:D.max, days:D.days.length};
+  if(S.view==="home"){ renderView(); return; }
+  renderPilot();
+  if(PILOT.status!=="active"){ renderFresh(); return; }
+  renderWindow(); renderFindings(); renderMatrix(); renderFresh();
+}
+function renderFresh(){
+  const f=$("#fresh"), b=$("#fresh-b");
+  f.className="fresh";
+  let max=null;
+  if(S.view==="home") PILOTS.forEach(p=>{ const v=SUMMARY[p.id]&&SUMMARY[p.id].lastEvent; if(v&&(!max||v>max)) max=v; });
+  else if(D && D.hasData) max=D.max;
+  f.hidden = !max;
+  if(!max){ b.textContent="No data"; f.title="Load an export to begin."; return; }
+  const age=(Date.now()-max)/36e5;
+  f.classList.add(age<24?"is-fresh":"is-stale");
+  b.textContent = age<1 ? "under 1 h old" : age<48 ? Math.round(age)+" h old" : Math.round(age/24)+" d old";
+  const last=S.uploads.length?S.uploads[S.uploads.length-1]:null;
+  f.title="Newest event "+fmtTs(max)+(last&&S.view!=="home"?"\nLoaded "+ago(last.at):"");
+}
+
+/* ---------- ingest wiring ---------- */
+async function handleFiles(list){
+  const files=[...list].filter(f=>/\.csv$/i.test(f.name)||f.type==="text/csv");
+  if(!files.length){ flash("Those files are not CSVs."); return; }
+  // the small spans file first, for instant feedback
+  files.sort((a,b)=>a.size-b.size);
+  $("#drop").hidden=false; $("#drop").classList.remove("drag"); $("#prog").hidden=false;
+  const lines=[];
+  for(const f of files){
+    lines.push("Reading "+f.name+" ("+(f.size/1048576).toFixed(1)+" MB)…");
+    $("#ilog").textContent=lines.join("\n");
+    try{
+      const stat=await ingestFile(f, p=>{
+        $("#prog-i").style.width=(p.bytes/p.total*100).toFixed(1)+"%";
+        $("#ilog").textContent=lines.concat("  "+fmtInt(p.n)+" rows scanned · "+fmtInt(p.kept)+" retained").join("\n");
+      });
+      $("#prog-i").style.width="100%";
+      lines[lines.length-1]="✓ "+f.name+" — "+stat.kind+", "+fmtInt(stat.rows)+" rows scanned, "+
+        fmtInt(stat.kept)+" retained, "+fmtInt(stat.dup)+" already present"+
+        (stat.conflict?", "+stat.conflict+" changed since last load":"")+" ("+(stat.ms/1000).toFixed(1)+"s)";
+    }catch(e){
+      lines[lines.length-1]="✕ "+f.name+" — "+(e&&e.message||e);
+    }
+    $("#ilog").textContent=lines.join("\n");
+    $("#prog-i").style.width="0%";
+  }
+  $("#prog").hidden=true;
+  const touched = new Set();
+  BUCKETS.forEach((b,pid)=>{ if(b.events.size||b.spans.size) touched.add(pid); });
+  await persistTouched([...touched]);
+  const named = [...touched].map(id=>(PILOTS.find(x=>x.id===id)||{}).name).filter(Boolean);
+  if(named.length) lines.push("Routed to "+named.join(" and ")+" by roster address.");
+  $("#ilog").textContent = lines.join("\n");
+  if(S.view==="home") renderView(); else renderAll();
+}
+
+function wire(){
+  $("#btn-home").onclick=goHome;
+
+  const fi=$("#file");
+  $("#btn-pick").onclick=()=>fi.click();
+  fi.onchange=()=>{ handleFiles(fi.files); fi.value=""; };
+
+  // dropping still works anywhere on the page; the strip only appears while it matters
+  const dz=$("#drop"); let wasHidden=true;
+  ["dragenter","dragover"].forEach(ev=>document.addEventListener(ev,e=>{
+    e.preventDefault();
+    if(!dz.classList.contains("drag")){ wasHidden=dz.hidden; dz.hidden=false;
+      dz.classList.add("drag");
+      if(wasHidden) $("#ilog").textContent="Drop the events and spans CSV exports to load them."; }
+  }));
+  ["dragleave","drop"].forEach(ev=>document.addEventListener(ev,e=>{
+    e.preventDefault();
+    if(ev==="drop"||e.target===document.documentElement){
+      dz.classList.remove("drag"); if(wasHidden) dz.hidden=true; }
+  }));
+  document.addEventListener("drop",e=>{ e.preventDefault();
+    if(e.dataTransfer&&e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+
+  $("#btn-pivot").onclick=()=>{ S.opts.pivot=!S.opts.pivot; renderAll(); };
+  $("#t-dedupe").onchange=e=>{ S.opts.dedupe=e.target.checked; renderAll(); };
+
+  $("#btn-copy").onclick=async()=>{
+    try{ await navigator.clipboard.writeText(findingsText()); $("#btn-copy").textContent="Copied"; }
+    catch(e){ $("#btn-copy").textContent="Copy failed"; }
+    setTimeout(()=>$("#btn-copy").textContent="Copy as text",1600);
+  };
+
+  $("#btn-config").onclick = openConfigDrawer;
+  $("#btn-data").onclick   = openDataDrawer;
+
+  $("#cfgfile").onchange  = e => { const f=e.target.files[0]; e.target.value="";
+    if(f) loadConfigFile(f); };
+  $("#snapfile").onchange = e => { const f=e.target.files[0]; e.target.value="";
+    if(f) loadSnapshotFile(f); };
+  $("#btn-cfg-load").onclick   = () => $("#cfgfile").click();
+  $("#btn-snap-load").onclick  = () => $("#snapfile").click();
+  $("#btn-cfg-sample").onclick = loadBundledExample;
+
+
+  $("#tz").onchange=e=>{ S.tz=e.target.value; saveAll(); renderAll(); };
+
+  $("#btn-findings").onclick=openFindings;
+  $("#fx").onclick=closeFindings;
+  $("#mscrim").onclick=e=>{ if(e.target===$("#mscrim")) closeFindings(); };
+  $("#dw-x").onclick=closeDrawer;
+  $("#scrim").onclick=closeDrawer;
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeDrawer(); closeFindings(); } });
+}
+
+/* ---------- timezone options ---------- */
+function renderTZ(){
+  const sel=$("#tz"); if(!sel) return;
+  sel.innerHTML="";
+  ((CFG&&CFG.timezones) || DEFAULT_TZ).forEach(t=>{
+    const o=document.createElement("option");
+    o.value=t.id; o.textContent=t.label||t.id; sel.append(o);
+  });
+  if(![...sel.options].some(o=>o.value===S.tz))
+    S.tz = sel.options.length ? sel.options[0].value : "UTC";
+  sel.value = S.tz;
+}
+
+/* ---------- configuration ---------- */
+function setupError(msgs){
+  const box=$("#setup-err");
+  if(!msgs || !msgs.length){ box.hidden=true; box.textContent=""; return; }
+  box.hidden=false;
+  box.textContent = (msgs.length>1 ? "That file could not be used:\n\n" : "That file could not be used:\n\n")
+    + msgs.map(m=>"• "+m).join("\n");
+}
+function readJSONFile(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload  = () => { try{ res(JSON.parse(r.result)); }
+                        catch(e){ rej(new Error("That file is not valid JSON — "+(e&&e.message||e))); } };
+    r.onerror = () => rej(new Error("The file could not be read."));
+    r.readAsText(file);
+  });
+}
+async function useConfig(raw, source){
+  const errs = validateConfig(raw);
+  if(errs.length){ setupError(errs); throw new Error("invalid"); }
+  await storeConfig({...raw, source, loadedAt:Date.now()});
+  location.reload();
+}
+async function loadConfigFile(file){
+  setupError(null);
+  try{ await useConfig(await readJSONFile(file), "manual"); }
+  catch(e){ if(e.message!=="invalid") setupError([e.message]); }
+}
+async function loadBundledExample(){
+  setupError(null);
+  const j = await fetchJSON(EXAMPLE_URL);
+  if(!j){ setupError(["No config.example.json is being served next to this page. "+
+    "If you opened index.html straight from disk, browsers block that read — serve the folder over http instead, "+
+    "or use “Choose configuration…” to pick the file yourself."]); return; }
+  try{ await useConfig(j, "manual"); }
+  catch(e){ if(e.message!=="invalid") setupError([e.message]); }
+}
+async function loadSnapshotFile(file){
+  setupError(null);
+  try{
+    await applySnapshot(await readJSONFile(file));
+    location.reload();
+  }catch(e){
+    const msg = e && e.message || String(e);
+    if(S.view==="setup") setupError(msg.split("\n"));
+    else flash(msg);
+  }
+}
+function openConfigDrawer(){
+  showDrawer("Configuration",
+    CFG ? CFG.title+" · version "+CFG.version : "Not configured", b=>{
+    const rows = [
+      ["Source", CFG.source==="deployed" ? "config.json served with the page" : "loaded by hand in this browser"],
+      ["Version", String(CFG.version)],
+      ["Pilots", PILOTS.map(p=>p.name).join(", ") || "—"],
+      ["Rosters", PILOTS.map(p=>p.name+" "+(p.roster||[]).length).join(" · ")],
+      ["Catalogues", PILOTS.map(p=>p.name+" "+(p.catalog||[]).length).join(" · ")],
+      ["Storage", S.storeKind==="local" ? "IndexedDB, this browser only" : "memory only — nothing is kept"]
+    ];
+    rows.forEach(([k,v])=>{
+      const r=el("div","cfg-row"); r.append(el("span","k",k), el("span","v",v)); b.append(r);
+    });
+    const p=el("p"); p.style.cssText="font-size:12.5px;color:var(--ink-2);line-height:1.6;margin:18px 0 0";
+    p.textContent = CFG.source==="deployed"
+      ? "This page is served with its own configuration. Loading one by hand overrides it until the served file's version number goes up."
+      : "This configuration lives only in this browser. Anyone else opening the page has to load their own, or import a snapshot that carries one.";
+    b.append(p);
+    const acts=el("div","setup-acts");
+    const swap=el("button","btn","Replace configuration…");
+    swap.onclick=()=>$("#cfgfile").click();
+    const drop=el("button","btn","Forget it and start over");
+    drop.onclick=async()=>{ await forgetConfig(); location.reload(); };
+    acts.append(swap, drop); b.append(acts);
+  });
+}
+
+/* ---------- data ---------- */
+async function clearAllData(){
+  S.drops={}; S.unrostered.clear(); S.ui.clear();
+  BUCKETS.forEach(b=>{ b.events.clear(); b.spans.clear(); b.hb.clear(); b.uploads.length=0; });
+  for(const pilot of PILOTS){
+    if(pilot.status!=="active") continue;
+    await withPilot(pilot, async () => {
+      try{
+        if(S.storeKind==="local"){
+          await idbPut(S.store,pilot.id+":events",[]);
+          await idbPut(S.store,pilot.id+":spans",[]);
+        }
+      }catch(e){}
+      derive();
+      SUMMARY[pilot.id]={fired:D.firedUcs.length,total:D.covStrict.n,
+                         agents:D.agents.length,lastEvent:null,days:0};
+      await saveAll();
+    });
+  }
+  $("#ilog").textContent=""; $("#drop").hidden=true;
+  closeDrawer();
+  if(S.view==="home") renderView(); else renderAll();
+}
+/* destructive actions arm on the first click and fire on the second */
+function armed(btn, label, armLabel, fn){
+  btn.onclick = () => {
+    if(btn.dataset.armed!=="1"){
+      btn.dataset.armed="1"; btn.classList.add("armed"); btn.textContent=armLabel;
+      clearTimeout(btn._t);
+      btn._t=setTimeout(()=>{ btn.dataset.armed="0"; btn.classList.remove("armed");
+        btn.textContent=label; },4000);
+      return;
+    }
+    clearTimeout(btn._t); btn.dataset.armed="0"; btn.classList.remove("armed");
+    btn.textContent=label;
+    fn();
+  };
+}
+function openDataDrawer(){
+  let rows=0, sp=0;
+  BUCKETS.forEach(b=>{ rows+=b.events.size; sp+=b.spans.size; });
+  showDrawer("Data", S.storeKind==="local"
+      ? "Stored in this browser only" : "Not being stored — this session only", b=>{
+    const stats = [
+      ["Events held", fmtInt(rows)],
+      ["Spans held",  fmtInt(sp)],
+      ["Pilots with data", [...BUCKETS.entries()]
+        .filter(([,x])=>x.events.size||x.spans.size)
+        .map(([pid])=>{ const p=PILOTS.find(y=>y.id===pid); return p?p.name:pid; })
+        .join(", ") || "none"]
+    ];
+    stats.forEach(([k,v])=>{
+      const r=el("div","cfg-row"); r.append(el("span","k",k), el("span","v",v)); b.append(r);
+    });
+
+    const note=el("p"); note.style.cssText="font-size:12.5px;color:var(--ink-2);line-height:1.6;margin:18px 0 0";
+    note.textContent="Exports are merged, not replaced: a row already held is skipped and a span still "+
+      "open at export time is extended by the next one. A run of partial exports therefore adds up to more "+
+      "than any single one contains, which is what a snapshot carries.";
+    b.append(note);
+
+    const acts=el("div","setup-acts");
+    const out=el("button","btn btn-primary","Export snapshot");
+    out.onclick=()=>{
+      const stamp=new Date().toISOString().slice(0,10);
+      downloadJSON("hypercare-snapshot-"+stamp+".json", buildSnapshot());
+    };
+    const inn=el("button","btn","Import snapshot…");
+    inn.onclick=()=>$("#snapfile").click();
+    acts.append(out, inn); b.append(acts);
+
+    const danger=el("div","setup-acts"); danger.style.marginTop="26px";
+    const wipe=el("button","btn","Clear every loaded row");
+    armed(wipe, "Clear every loaded row", "Click again to erase everything", clearAllData);
+    danger.append(wipe); b.append(danger);
+    const dn=el("p"); dn.style.cssText="font-size:11.5px;color:var(--ink-3);margin:8px 0 0";
+    dn.textContent="Clears all pilots in this browser. Export a snapshot first if you want it back.";
+    b.append(dn);
+  });
+}
+
+/* ---------- boot ---------- */
+(async function boot(){
+  wire();
+  await initStore();
+
+  const {cfg, error} = await resolveConfig();
+  STORE_NOTE = S.storeKind==="local" ? " · saved in this browser only" : " · not saved";
+
+  if(!cfg){
+    S.view="setup";
+    renderView();
+    if(error) setupError(error);
+    return;
+  }
+
+  applyConfig(cfg);
+  S.view="home";
+  renderTZ();
+  renderView();
+  reindexRoster();
+  for(const p of PILOTS) if(p.status==="active") await loadPilotData(p);
+  activate(PILOT.id);
+  renderTZ();
+  renderView();
+})();
+</script>
+
+
+</body></html>

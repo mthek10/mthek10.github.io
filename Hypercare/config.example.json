@@ -1,0 +1,325 @@
+{
+  "version": 1,
+  "title": "Pilot Hypercare",
+  "subtitle": "Compliance pilot control",
+  "adminBase": "https://app.pixiebrix.com/teams",
+
+  "timezones": [
+    { "id": "UTC", "label": "UTC" },
+    { "id": "America/New_York", "label": "New York" },
+    { "id": "Asia/Manila", "label": "Manila" }
+  ],
+
+  "heartbeat": {
+    "eventTypes": ["custom"],
+    "label": "Heartbeat from an unrelated product"
+  },
+
+  "pilots": [
+    {
+      "id": "northwind",
+      "name": "Northwind",
+      "client": "Example BPO",
+      "status": "active",
+      "team": "00000000-0000-0000-0000-000000000000",
+      "policy": "11111111-1111-1111-1111-111111111111",
+      "deployment": "22222222-2222-2222-2222-222222222222",
+      "doc": "",
+      "targetExt": "3.3.1",
+
+      "roster": [
+        {
+          "id": "n1",
+          "name": "Avery Stone",
+          "lob": "Tier 1",
+          "group": "T1",
+          "site": "Example City",
+          "emails": ["avery.stone@example.invalid"],
+          "shift": "09:00 – 17:00",
+          "ready": { "login": 1, "ext": "3.3.1", "mod": "1.0.0" }
+        },
+        {
+          "id": "n2",
+          "name": "Blair Okafor",
+          "lob": "Tier 2",
+          "group": "T2",
+          "site": "Example City",
+          "emails": [
+            "blair.okafor@example.invalid",
+            "b.okafor@example-alias.invalid"
+          ],
+          "ready": { "login": 1, "ext": "3.3.0", "mod": "1.0.0" }
+        },
+        {
+          "id": "n3",
+          "name": "Cameron Ruiz",
+          "lob": "Quality",
+          "group": "QA",
+          "site": "Remote",
+          "emails": ["cameron.ruiz@example.invalid"],
+          "ready": { "login": 0 }
+        }
+      ],
+
+      "catalog": [
+        {
+          "id": "UC1",
+          "name": "Card data on screen",
+          "enforcement": { "def": "Mask", "by": { "T2": "Soft Block" } },
+          "system": "CRM",
+          "impl": "Policy",
+          "groups": ["T1", "T2", "QA"],
+          "status": "live",
+          "detect": "event",
+          "confidence": "confirmed",
+          "priority": 60,
+          "exclusive": true,
+          "unit": "detections",
+          "note": "Masks card-shaped strings. Shares a category with UC2 and is separated from it by which pattern matched, so both rules must stay in step.",
+          "signals": [
+            {
+              "source": "event",
+              "match": {
+                "all": [
+                  { "field": "event_type", "eq": "security" },
+                  { "field": "data.category", "eq": "text_pattern_match" },
+                  {
+                    "field": "data.categories",
+                    "anyOf": ["credit card", "last 4 cc", "card number"],
+                    "ci": true
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "UC2",
+          "name": "Other sensitive patterns",
+          "enforcement": "Warn",
+          "system": "CRM",
+          "impl": "Policy",
+          "groups": ["T1", "T2", "QA"],
+          "status": "live",
+          "detect": "event",
+          "confidence": "inferred",
+          "priority": 40,
+          "exclusive": true,
+          "unit": "warnings",
+          "note": "Everything in the pattern stream that is not a card. `not` is what keeps this from swallowing UC1.",
+          "signals": [
+            {
+              "source": "event",
+              "match": {
+                "all": [
+                  { "field": "event_type", "eq": "security" },
+                  { "field": "data.category", "eq": "text_pattern_match" },
+                  {
+                    "not": {
+                      "field": "data.categories",
+                      "anyOf": ["credit card", "last 4 cc", "card number"],
+                      "ci": true
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "UC3",
+          "name": "Social media lookups",
+          "enforcement": "Block",
+          "system": "Browser-wide",
+          "impl": "Policy",
+          "groups": ["T1", "T2"],
+          "status": "live",
+          "detect": "event",
+          "confidence": "confirmed",
+          "priority": 52,
+          "exclusive": true,
+          "risk": true,
+          "unit": "blocks",
+          "note": "Every event here is someone who tried. `domainIn` matches the registrable domain and its subdomains.",
+          "signals": [
+            {
+              "source": "event",
+              "match": {
+                "all": [
+                  { "field": "event_type", "eq": "security" },
+                  { "field": "data.category", "eq": "site_access" },
+                  {
+                    "field": "data.url",
+                    "domainIn": ["facebook.com", "instagram.com", "tiktok.com"]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "UC4",
+          "name": "Ticket transfer to a queue",
+          "enforcement": "Hide",
+          "system": "Ticketing",
+          "impl": "Mod",
+          "groups": ["T1", "T2"],
+          "status": "live",
+          "detect": "event",
+          "confidence": "confirmed",
+          "priority": 50,
+          "exclusive": true,
+          "unit": "transfers",
+          "note": "Separated from UC5 by the absence of an assignee — a queue transfer names no user.",
+          "signals": [
+            {
+              "source": "event",
+              "match": {
+                "all": [
+                  { "field": "event_type", "eq": "security" },
+                  { "field": "data.category", "eq": "TicketTransfer" },
+                  { "not": { "field": "data.user", "exists": true } }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "UC5",
+          "name": "Ticket re-assignment",
+          "enforcement": "Monitor",
+          "system": "Ticketing",
+          "impl": "Mod",
+          "groups": ["T1", "T2"],
+          "status": "live",
+          "detect": "event",
+          "confidence": "confirmed",
+          "priority": 49,
+          "exclusive": true,
+          "unit": "re-assignments",
+          "note": "Same action as UC4, but naming an assignee. Priority breaks the tie when both match.",
+          "signals": [
+            {
+              "source": "event",
+              "match": {
+                "all": [
+                  { "field": "event_type", "eq": "security" },
+                  { "field": "data.category", "eq": "TicketTransfer" },
+                  { "field": "data.user", "exists": true }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "UC6",
+          "name": "Customer auth before access",
+          "enforcement": "Soft Block",
+          "system": "CRM",
+          "impl": "Mod",
+          "groups": ["T1", "T2", "QA"],
+          "status": "live",
+          "detect": "event",
+          "confidence": "confirmed",
+          "priority": 58,
+          "unit": "attestations",
+          "watch": "On watch to drop to Warn if friction is too high.",
+          "note": "Broadest reach in the set — it sits in front of every customer record.",
+          "signals": [
+            {
+              "source": "event",
+              "match": {
+                "all": [
+                  { "field": "event_type", "eq": "security" },
+                  { "field": "data.category", "eq": "Customer Authentication" }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "UC7",
+          "name": "Tool / URL visibility",
+          "enforcement": "Monitor",
+          "system": "Browser-wide",
+          "impl": "Activity tracking",
+          "groups": ["T1", "T2", "QA"],
+          "status": "live",
+          "detect": "span",
+          "confidence": "confirmed",
+          "priority": 20,
+          "unit": "sessions",
+          "note": "Measured from the spans export rather than the event stream.",
+          "signals": [
+            { "source": "span", "match": { "field": "kind", "eq": "page_session" } }
+          ]
+        },
+        {
+          "id": "UC8",
+          "name": "Screenshot watermarking",
+          "enforcement": "Watermark + Warn",
+          "system": "Knowledge base",
+          "impl": "Policy",
+          "groups": ["T1", "T2", "QA"],
+          "status": "live",
+          "detect": "none",
+          "confidence": "confirmed",
+          "priority": 10,
+          "unit": "events",
+          "note": "Writes no activity event, so it can only be validated by hand. `detect: none` counts it as working until someone does.",
+          "signals": []
+        },
+        {
+          "id": "UC9",
+          "name": "Bulk record export",
+          "enforcement": "Soft Block",
+          "system": "CRM",
+          "impl": "Policy",
+          "groups": ["T1", "T2"],
+          "status": "hold",
+          "detect": "event",
+          "confidence": "inferred",
+          "priority": 45,
+          "unit": "events",
+          "hold": "Requires extension 3.3.1. Provisioned agents are still on 3.3.0, so this control cannot fire yet.",
+          "note": "Held controls sit outside the coverage denominator — they neither help nor hurt the score.",
+          "signals": [
+            {
+              "source": "event",
+              "match": {
+                "all": [
+                  { "field": "event_type", "eq": "security" },
+                  { "field": "data.category", "in": ["BulkExport", "bulk_export"] }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "UC10",
+          "name": "Password resets",
+          "enforcement": "None",
+          "system": "Windows",
+          "impl": "None",
+          "groups": [],
+          "status": "disqualified",
+          "detect": "none",
+          "confidence": "confirmed",
+          "priority": 0,
+          "unit": "events",
+          "note": "Disqualified during scoping — happens at device-login level.",
+          "signals": []
+        }
+      ]
+    },
+    {
+      "id": "contoso",
+      "name": "Contoso",
+      "client": "Example BPO",
+      "status": "planned",
+      "soonNote": "Declared here so it appears on the pilot list. It switches on once a roster and a catalogue are added to this entry.",
+      "roster": [],
+      "catalog": []
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# Real configurations carry roster names and work addresses.
+# A GitHub Pages site is readable by anyone with the URL, so the
+# configuration is supplied at run time rather than committed.
+# Delete this line if your repository is private, or if the config
+# contains nothing you mind publishing.
+config.json
+
+# Snapshots contain activity data. Never commit one.
+*snapshot*.json
+
+.DS_Store
+.claude/
