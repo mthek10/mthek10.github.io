@@ -282,6 +282,7 @@ label.tog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--i
     <a class="btn" id="doclink" href="#" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Scoping doc &nearr;</a>
     <button class="btn" id="btn-config">Configuration</button>
     <button class="btn" id="btn-data">Data</button>
+    <button class="btn" id="btn-export" title="Download every loaded row, plus the configuration, as one file">Export snapshot</button>
     <button class="btn btn-primary" id="btn-pick">Load export</button>
   </div>
 </div>
@@ -833,6 +834,11 @@ async function applySnapshot(snap){
       summary:null, unrostered:snap.unrostered||[], hb:d.hb||[]});
     await idbPut(S.store, pid+":config", {v:version, tz:snap.tz||"UTC"});
   }
+}
+
+function exportSnapshot(){
+  const stamp = new Date().toISOString().slice(0,10);
+  downloadJSON("hypercare-snapshot-"+stamp+".json", buildSnapshot());
 }
 
 function downloadJSON(name, obj){
@@ -1511,7 +1517,7 @@ function renderView(){
   $("#setup").hidden = !setup;
   $("#home").hidden  = !home;
   ["#btn-home","#btn-findings","#doclink"].forEach(k=>{ const e=$(k); if(e) e.hidden = home||setup; });
-  ["#btn-pick","#btn-config","#btn-data"].forEach(k=>{ const e=$(k); if(e) e.hidden = !home; });
+  ["#btn-pick","#btn-export","#btn-config","#btn-data"].forEach(k=>{ const e=$(k); if(e) e.hidden = !home; });
   if(setup){
     $("#brand-h1").textContent = "Pilot Hypercare";
     $("#brand-sub").textContent = "Not configured";
@@ -1664,6 +1670,7 @@ function wire(){
 
   $("#btn-config").onclick = openConfigDrawer;
   $("#btn-data").onclick   = openDataDrawer;
+  $("#btn-export").onclick = exportSnapshot;
 
   $("#loadfile").onchange = e => { const f=e.target.files[0]; e.target.value="";
     if(f) loadStartFile(f); };
@@ -1846,10 +1853,7 @@ function openDataDrawer(){
 
     const acts=el("div","setup-acts");
     const out=el("button","btn btn-primary","Export snapshot");
-    out.onclick=()=>{
-      const stamp=new Date().toISOString().slice(0,10);
-      downloadJSON("hypercare-snapshot-"+stamp+".json", buildSnapshot());
-    };
+    out.onclick=exportSnapshot;
     const inn=el("button","btn","Import snapshot…");
     inn.onclick=()=>$("#loadfile").click();
     acts.append(out, inn); b.append(acts);
