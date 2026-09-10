@@ -83,6 +83,10 @@ to onboard someone: they load that single file and are looking at exactly what y
 Use one to move a working set to another machine, hand a colleague the history without
 re-uploading gigabytes of CSV, or keep a checkpoint before clearing.
 
+A snapshot with no rows only updates the configuration; it never replaces the rows a
+browser already holds. Export waits until every pilot's rows have loaded, so it cannot
+produce one by accident.
+
 A snapshot contains real activity data and, usually, a real roster. Treat it like the
 export it came from — it is in `.gitignore` for that reason.
 
@@ -194,5 +198,6 @@ Available fields — **event**: `event_type`, `url`, `domain`, `policy`, `data.*
   duplicates and collapsed by default — inconsistent `allFrames` across triggers makes
   a control fire once per frame, so raw counts overstate what happened.
 - Shrinking a roster removes that person's stored rows on the next load.
-- The trash icon in the top bar clears every loaded row, for all pilots. It arms on the
-  first click and fires on the second, and affects only your own browser.
+- The trash icon in the top bar forgets everything this browser holds — the configuration
+  and every loaded row — and returns to the start screen. It arms on the first click and
+  fires on the second, and affects only your own browser.

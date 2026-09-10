@@ -281,8 +281,7 @@ label.tog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--i
     <button class="btn" id="btn-home">&larr; Pilots</button>
     <button class="btn" id="btn-findings">AI Findings<span class="cnt" id="fcount">0</span></button>
     <a class="btn" id="doclink" href="#" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Scoping doc &nearr;</a>
-    <button class="btn" id="btn-config">Configuration</button>
-    <button class="btn btn-icon" id="btn-reset" title="Clear every loaded row, for all pilots" aria-label="Clear loaded data"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.1a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L12 4M6.6 7v4M9.4 7v4"/></svg></button>
+    <button class="btn btn-icon" id="btn-reset" title="Forget everything in this browser and start over" aria-label="Forget everything and start over"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.1a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L12 4M6.6 7v4M9.4 7v4"/></svg></button>
     <button class="btn" id="btn-export" title="Download every loaded row, plus the configuration, as one file">Export snapshot</button>
     <button class="btn btn-primary" id="btn-pick" title="The events and spans CSV exports, or a snapshot .json">Load export</button>
   </div>
@@ -706,8 +705,6 @@ function idbPut(db,k,v){ return new Promise((res,rej)=>{ const t=db.transaction(
   t.objectStore("kv").put(v,k); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
 function idbGet(db,k){ return new Promise(res=>{ const t=db.transaction("kv","readonly");
   const q=t.objectStore("kv").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>res(undefined); }); }
-function idbDel(db,k){ return new Promise(res=>{ const t=db.transaction("kv","readwrite");
-  t.objectStore("kv").delete(k); t.oncomplete=()=>res(); t.onerror=()=>res(); }); }
 
 const thaw = v => v==null ? v : JSON.parse(JSON.stringify(v));
 
@@ -720,10 +717,6 @@ async function storedConfig(){
 async function storeConfig(c){
   if(S.storeKind!=="local") return;
   try{ await idbPut(S.store, CFG_KEY, c); }catch(e){}
-}
-async function forgetConfig(){
-  if(S.storeKind!=="local") return;
-  try{ await idbDel(S.store, CFG_KEY); }catch(e){}
 }
 
 /* ---------- loaded rows ---------- */
@@ -838,6 +831,7 @@ async function applySnapshot(snap){
 }
 
 function exportSnapshot(){
+  if(!READY) return;
   const stamp = new Date().toISOString().slice(0,10);
   downloadJSON("hypercare-snapshot-"+stamp+".json", buildSnapshot());
 }
@@ -1493,6 +1487,7 @@ function openCell(p,uc){
 /* ===================== orchestration ===================== */
 const SUMMARY = {};
 let STORE_NOTE = "";
+let READY = false;       // every pilot's rows are loaded; Export waits for this
 
 
 function renderHome(){
@@ -1531,7 +1526,9 @@ function renderView(){
   $("#setup").hidden = !setup;
   $("#home").hidden  = !home;
   ["#btn-home","#btn-findings","#doclink"].forEach(k=>{ const e=$(k); if(e) e.hidden = home||setup; });
-  ["#btn-pick","#btn-export","#btn-config","#btn-reset"].forEach(k=>{ const e=$(k); if(e) e.hidden = !home; });
+  ["#btn-pick","#btn-reset"].forEach(k=>{ const e=$(k); if(e) e.hidden = !home; });
+  // an export taken before the rows finish loading is a valid-looking file with nothing in it
+  const ex=$("#btn-export"); if(ex) ex.hidden = !home || !READY;
   if(setup){
     $("#brand-h1").textContent = "Pilot Hypercare";
     $("#brand-sub").textContent = "Not configured";
@@ -1687,19 +1684,18 @@ function wire(){
     setTimeout(()=>$("#btn-copy").textContent="Copy as text",1600);
   };
 
-  $("#btn-config").onclick = openConfigDrawer;
   // destructive, so it arms on the first click and fires on the second
-  const rs=$("#btn-reset"), RS_TIP="Clear every loaded row, for all pilots";
+  const rs=$("#btn-reset"), RS_TIP="Forget everything in this browser and start over";
   rs.onclick=()=>{
     if(rs.dataset.armed!=="1"){
       rs.dataset.armed="1"; rs.classList.add("armed");
-      rs.title="Click again to erase every loaded row, for all pilots";
+      rs.title="Click again to forget the configuration and every loaded row";
       clearTimeout(rs._t);
       rs._t=setTimeout(()=>{ rs.dataset.armed="0"; rs.classList.remove("armed"); rs.title=RS_TIP; },4000);
       return;
     }
     clearTimeout(rs._t); rs.dataset.armed="0"; rs.classList.remove("armed"); rs.title=RS_TIP;
-    clearAllData();
+    forgetEverything();
   };
   $("#btn-export").onclick = exportSnapshot;
 
@@ -1779,6 +1775,19 @@ async function loadStartFile(file){
   try{
     const j = await readJSONFile(file);
     if(j && j.kind === SNAP_KIND){
+      const rows = Object.values(j.pilots || {})
+        .reduce((n, d) => n + (d.events||[]).length + (d.spans||[]).length, 0);
+      if(!rows){
+        // applying it would replace whatever this browser holds with nothing:
+        // take the configuration, keep the rows, and say so
+        const errs = validateConfig(j.config);
+        if(errs.length){ report(["That snapshot holds no rows and no usable configuration."].concat(errs)); return; }
+        await storeConfig({...j.config, source:"manual", loadedAt:Date.now()});
+        stashLoaded("That snapshot held no rows, so only its configuration was loaded. "+
+                    "Rows already in this browser were kept. If you expected data, export it again once the source page has finished loading.");
+        location.reload();
+        return;
+      }
       await applySnapshot(j);
       stashLoaded(snapshotSummary(j));
       location.reload();
@@ -1810,57 +1819,20 @@ async function loadBundledExample(){
   try{ await useConfig(j, "manual"); }
   catch(e){ if(e.message!=="invalid") setupError([e.message]); }
 }
-function openConfigDrawer(){
-  showDrawer("Configuration",
-    CFG ? CFG.title+" · version "+CFG.version : "Not configured", b=>{
-    const rows = [
-      ["Source", CFG.source==="deployed" ? "config.json served with the page" : "loaded by hand in this browser"],
-      ["Version", String(CFG.version)],
-      ["Pilots", PILOTS.map(p=>p.name).join(", ") || "—"],
-      ["Rosters", PILOTS.map(p=>p.name+" "+(p.roster||[]).length).join(" · ")],
-      ["Catalogues", PILOTS.map(p=>p.name+" "+(p.catalog||[]).length).join(" · ")],
-      ["Storage", S.storeKind==="local" ? "IndexedDB, this browser only" : "memory only — nothing is kept"]
-    ];
-    rows.forEach(([k,v])=>{
-      const r=el("div","cfg-row"); r.append(el("span","k",k), el("span","v",v)); b.append(r);
-    });
-    const p=el("p"); p.style.cssText="font-size:12.5px;color:var(--ink-2);line-height:1.6;margin:18px 0 0";
-    p.textContent = CFG.source==="deployed"
-      ? "This page is served with its own configuration. Loading one by hand overrides it until the served file's version number goes up."
-      : "This configuration lives only in this browser. Anyone else opening the page has to load their own, or import a snapshot that carries one.";
-    b.append(p);
-    const acts=el("div","setup-acts");
-    const swap=el("button","btn","Load a snapshot or configuration…");
-    swap.onclick=()=>$("#loadfile").click();
-    const drop=el("button","btn","Forget it and start over");
-    drop.onclick=async()=>{ await forgetConfig(); location.reload(); };
-    acts.append(swap, drop); b.append(acts);
-  });
+/* ---------- Delete ----------
+   Forget this browser's configuration and every loaded row in one step and go
+   back to the start screen. A deployment that serves its own config.json comes
+   straight back up with it; otherwise the next step is Load snapshot. */
+async function forgetEverything(){
+  try{
+    if(S.storeKind==="local") await new Promise((res,rej)=>{
+      const t=S.store.transaction("kv","readwrite");
+      t.objectStore("kv").clear(); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); });
+  }catch(e){ flash("Could not clear this browser's data: "+((e&&e.message)||e)); return; }
+  stashLoaded("Everything in this browser was cleared. Load a snapshot to start again.");
+  location.reload();
 }
 
-/* ---------- data ---------- */
-async function clearAllData(){
-  S.drops={}; S.unrostered.clear(); S.ui.clear();
-  BUCKETS.forEach(b=>{ b.events.clear(); b.spans.clear(); b.hb.clear(); b.uploads.length=0; });
-  for(const pilot of PILOTS){
-    if(pilot.status!=="active") continue;
-    await withPilot(pilot, async () => {
-      try{
-        if(S.storeKind==="local"){
-          await idbPut(S.store,pilot.id+":events",[]);
-          await idbPut(S.store,pilot.id+":spans",[]);
-        }
-      }catch(e){}
-      derive();
-      SUMMARY[pilot.id]={fired:D.firedUcs.length,total:D.covStrict.n,
-                         agents:D.agents.length,lastEvent:null,days:0};
-      await saveAll();
-    });
-  }
-  $("#ilog").textContent=""; $("#drop").hidden=true;
-  closeDrawer();
-  if(S.view==="home") renderView(); else renderAll();
-}
 /* ---------- boot ---------- */
 (async function boot(){
   wire();
@@ -1873,6 +1845,7 @@ async function clearAllData(){
     S.view="setup";
     renderView();
     if(error) setupError(error);
+    const last = takeLoaded(); if(last) flash(last, 20000);
     return;
   }
 
@@ -1882,6 +1855,7 @@ async function clearAllData(){
   renderView();
   reindexRoster();
   for(const p of PILOTS) if(p.status==="active") await loadPilotData(p);
+  READY = true;
   activate(PILOT.id);
   renderTZ();
   renderView();
