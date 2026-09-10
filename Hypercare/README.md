@@ -15,18 +15,26 @@ time, which is what makes it safe to host publicly:
 
 | What | Where it comes from | Where it lives |
 |---|---|---|
-| Pilots, rosters, catalogue | a `config.json` you provide | IndexedDB, per browser |
-| Activity rows | CSV exports you load | IndexedDB, per browser |
+| Pilots, rosters, catalogue | a snapshot, or a `config.json` you load | IndexedDB, per browser |
+| Activity rows | that same snapshot, or CSV exports you load | IndexedDB, per browser |
 
 Nothing is transmitted anywhere. There is no backend, no analytics and no network call
 except the fonts. A snapshot file is the only way data moves between machines, and
 exporting one is a deliberate act.
 
+## Starting
+
+**Load one file.** A snapshot carries the configuration and the accumulated rows
+together, so it is the whole starting state — open the page, click **Load snapshot**,
+pick the file, done. The same button also accepts a configuration on its own, for
+someone starting with no data yet; you do not have to know which kind you were handed.
+
 ## Deploying
 
 1. Put `index.html` (and optionally `config.example.json`) in a repository.
 2. Settings → Pages → deploy from branch.
-3. Open the URL. You get the setup screen; load a configuration and you are running.
+3. Open the URL. You get the setup screen; load a snapshot (or a bare configuration)
+   and you are running.
 
 `.nojekyll` is included so GitHub Pages serves the files as-is.
 
@@ -68,10 +76,14 @@ you can load a narrow export without losing history, and why snapshots exist.
 ## Snapshots
 
 **Data → Export snapshot** writes a JSON file containing every accumulated row plus the
-configuration that gives it meaning. **Import snapshot** restores it.
+configuration that gives it meaning. Because it carries both, it is also the fastest way
+to onboard someone: they load that single file and are looking at exactly what you are.
 
 Use one to move a working set to another machine, hand a colleague the history without
 re-uploading gigabytes of CSV, or keep a checkpoint before clearing.
+
+A snapshot contains real activity data and, usually, a real roster. Treat it like the
+export it came from — it is in `.gitignore` for that reason.
 
 ## Configuration reference
 

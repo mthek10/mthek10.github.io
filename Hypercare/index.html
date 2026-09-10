@@ -287,8 +287,7 @@ label.tog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--i
 </div>
 
 <input type="file" id="file" accept=".csv,text/csv" multiple hidden>
-<input type="file" id="cfgfile" accept=".json,application/json" hidden>
-<input type="file" id="snapfile" accept=".json,application/json" hidden>
+<input type="file" id="loadfile" accept=".json,application/json" hidden>
 
 <main class="app">
   <div class="setup" id="setup" hidden>
@@ -296,26 +295,19 @@ label.tog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--i
       <div class="eyebrow">First run</div>
       <h2>This tool ships without any data</h2>
       <p>It is an empty analyser. Everything it shows &mdash; which pilots exist, who is on each
-         roster, and which controls are being validated &mdash; comes from a configuration file
-         that your team supplies. Nothing is bundled with the page and nothing is sent anywhere:
-         the configuration and any exports you load stay in this browser.</p>
+         roster, which controls are being validated, and every row of activity &mdash; comes from
+         one file that your team supplies. Nothing is bundled with the page and nothing is sent
+         anywhere: what you load stays in this browser.</p>
       <div class="setup-card">
-        <h3>Load a configuration file</h3>
-        <p style="margin:0">A JSON file describing your pilots, rosters and use-case catalogue.
-           See <code>config.example.json</code> in the repository for the schema and a worked example.</p>
+        <h3>Load a snapshot to start</h3>
+        <p style="margin:0">A snapshot carries the configuration and the accumulated rows together,
+           so a single file is all you need. A configuration on its own works too, if you are
+           starting with no data yet &mdash; the same button takes either.</p>
         <div class="setup-acts">
-          <button class="btn btn-primary" id="btn-cfg-load">Choose configuration&hellip;</button>
-          <button class="btn" id="btn-cfg-sample">Load the bundled example</button>
+          <button class="btn btn-primary" id="btn-load">Load snapshot&hellip;</button>
+          <button class="btn" id="btn-cfg-sample">Explore the bundled example</button>
         </div>
         <div class="setup-err" id="setup-err" hidden></div>
-      </div>
-      <div class="setup-card">
-        <h3>Already have a snapshot?</h3>
-        <p style="margin:0">A snapshot exported from another browser or from the hosted version
-           carries its configuration and its accumulated rows together.</p>
-        <div class="setup-acts">
-          <button class="btn" id="btn-snap-load">Import snapshot&hellip;</button>
-        </div>
       </div>
     </div>
   </div>
@@ -828,7 +820,7 @@ async function applySnapshot(snap){
     throw new Error("That file is not a Pilot Hypercare snapshot.");
   if(snap.config){
     const errs = validateConfig(snap.config);
-    if(errs.length) throw new Error("The snapshot carries an invalid configuration:\n• "+errs.join("\n• "));
+    if(errs.length) throw new Error("The snapshot carries an invalid configuration:\n"+errs.join("\n"));
     await storeConfig({...snap.config, source:"manual", loadedAt:Date.now()});
   }
   if(S.storeKind!=="local")
@@ -1673,12 +1665,9 @@ function wire(){
   $("#btn-config").onclick = openConfigDrawer;
   $("#btn-data").onclick   = openDataDrawer;
 
-  $("#cfgfile").onchange  = e => { const f=e.target.files[0]; e.target.value="";
-    if(f) loadConfigFile(f); };
-  $("#snapfile").onchange = e => { const f=e.target.files[0]; e.target.value="";
-    if(f) loadSnapshotFile(f); };
-  $("#btn-cfg-load").onclick   = () => $("#cfgfile").click();
-  $("#btn-snap-load").onclick  = () => $("#snapfile").click();
+  $("#loadfile").onchange = e => { const f=e.target.files[0]; e.target.value="";
+    if(f) loadStartFile(f); };
+  $("#btn-load").onclick       = () => $("#loadfile").click();
   $("#btn-cfg-sample").onclick = loadBundledExample;
 
 
@@ -1728,10 +1717,34 @@ async function useConfig(raw, source){
   await storeConfig({...raw, source, loadedAt:Date.now()});
   location.reload();
 }
-async function loadConfigFile(file){
+/* One entry point for both shapes. A snapshot carries its own configuration,
+   so it is the whole starting state; a bare configuration is the same thing
+   with no rows yet. Which one you handed over is a detail of the file, not a
+   decision the person loading it should have to make. */
+async function loadStartFile(file){
   setupError(null);
-  try{ await useConfig(await readJSONFile(file), "manual"); }
-  catch(e){ if(e.message!=="invalid") setupError([e.message]); }
+  try{
+    const j = await readJSONFile(file);
+    if(j && j.kind === SNAP_KIND){
+      await applySnapshot(j);
+      location.reload();
+      return;
+    }
+    const errs = validateConfig(j);
+    if(errs.length){
+      report(["That file is neither a snapshot nor a valid configuration."].concat(errs));
+      return;
+    }
+    await storeConfig({...j, source:"manual", loadedAt:Date.now()});
+    location.reload();
+  }catch(e){
+    if(e && e.message === "invalid") return;
+    report(String(e && e.message || e).split("\n"));
+  }
+  function report(lines){
+    if(S.view==="setup") setupError(lines);
+    else flash(lines.join(" "));
+  }
 }
 async function loadBundledExample(){
   setupError(null);
@@ -1741,17 +1754,6 @@ async function loadBundledExample(){
     "or use “Choose configuration…” to pick the file yourself."]); return; }
   try{ await useConfig(j, "manual"); }
   catch(e){ if(e.message!=="invalid") setupError([e.message]); }
-}
-async function loadSnapshotFile(file){
-  setupError(null);
-  try{
-    await applySnapshot(await readJSONFile(file));
-    location.reload();
-  }catch(e){
-    const msg = e && e.message || String(e);
-    if(S.view==="setup") setupError(msg.split("\n"));
-    else flash(msg);
-  }
 }
 function openConfigDrawer(){
   showDrawer("Configuration",
@@ -1773,8 +1775,8 @@ function openConfigDrawer(){
       : "This configuration lives only in this browser. Anyone else opening the page has to load their own, or import a snapshot that carries one.";
     b.append(p);
     const acts=el("div","setup-acts");
-    const swap=el("button","btn","Replace configuration…");
-    swap.onclick=()=>$("#cfgfile").click();
+    const swap=el("button","btn","Load a snapshot or configuration…");
+    swap.onclick=()=>$("#loadfile").click();
     const drop=el("button","btn","Forget it and start over");
     drop.onclick=async()=>{ await forgetConfig(); location.reload(); };
     acts.append(swap, drop); b.append(acts);
@@ -1849,7 +1851,7 @@ function openDataDrawer(){
       downloadJSON("hypercare-snapshot-"+stamp+".json", buildSnapshot());
     };
     const inn=el("button","btn","Import snapshot…");
-    inn.onclick=()=>$("#snapfile").click();
+    inn.onclick=()=>$("#loadfile").click();
     acts.append(out, inn); b.append(acts);
 
     const danger=el("div","setup-acts"); danger.style.marginTop="26px";
