@@ -175,6 +175,21 @@ td.cell{border-bottom:1px solid var(--rule);border-right:1px solid var(--rule)}
 .legend .li{display:flex;align-items:center;gap:7px}
 .legend .sw{width:25px;height:25px;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:14px;border-radius:2px;flex:none}
 
+/* ---------- how a control is built ---------- */
+.impl{display:inline-flex;gap:3px;flex-wrap:wrap;justify-content:center}
+/* a POLICY + MOD pair must stay on one line: wrapping would lift that
+   column's code above its neighbours in a bottom-aligned header row */
+.uc-h .impl{display:flex;flex-wrap:nowrap;gap:2px;margin:5px 0 0}
+.itag{font-family:var(--f-mono);font-size:8.5px;font-weight:600;letter-spacing:.03em;line-height:1.5;
+  padding:0 3px;border-radius:2px;border:1px solid transparent;white-space:nowrap}
+.uc-h .itag{padding:0 2px;letter-spacing:.01em}
+table.mx .uc-row .l2 .itag,.legend .itag{font-size:9.5px;padding:1px 5px}
+.i-mod{background:var(--accent-soft);color:var(--accent-ink);border-color:#d8c8fb}
+.i-policy{background:#e5eefb;color:#1d57a8;border-color:#c2d5f2}
+.i-tracking{background:var(--surface);color:var(--ink-3);border-color:var(--rule-strong);border-style:dashed}
+/* the tag key wraps as one unit, never split across two legend lines */
+.legend .impl-legend{display:flex;gap:10px 20px;margin-left:auto;padding-left:18px;border-left:1px solid var(--rule)}
+
 /* ---------- findings ---------- */
 .findings{display:flex;flex-direction:column}
 .finding{display:grid;grid-template-columns:auto 1fr auto;gap:14px;padding:13px 18px;border-bottom:1px solid var(--rule);align-items:start}
@@ -1283,6 +1298,25 @@ function cellNode(p, uc){
   td.append(box); return td;
 }
 const enfOf = uc => typeof uc.enforcement==="string" ? uc.enforcement : uc.enforcement.def;
+/* How a control is built, read off each catalog entry's impl, so a snapshot
+   from before this existed still gets its tags.
+   MOD is confirmed against the starter-brick labels in the deployed compliance
+   mods (Sonos 1.0.48, Turo 1.0.77 + restrict-ban-unban 1.0.3, pulled
+   2026-09-10); POLICY is everything no mod claims. Sonos UC11 only became
+   POLICY + MOD with 1.0.48 — 1.0.47 has no payment-summary hide.
+   TRACKING is the scoping doc's own third kind, the activity tracking behind
+   Tool / URL visibility. */
+const IMPL = [
+  {k:"POLICY",   re:/policy/i,   lbl:"Policy rule",       tip:"Configured in the pilot's policy set"},
+  {k:"MOD",      re:/\bmod\b/i,  lbl:"Mod",               tip:"Built in the compliance mod"},
+  {k:"TRACKING", re:/tracking/i, lbl:"Activity tracking", tip:"Activity tracking (page sessions), which the scoping doc lists apart from mods and policy rules"}
+];
+const implOf = uc => IMPL.filter(x => x.re.test(uc.impl||""));
+function implTags(uc){
+  const box=el("span","impl");
+  implOf(uc).forEach(x=>{ const t=el("span","itag i-"+x.k.toLowerCase(),x.k); t.title=x.tip; box.append(t); });
+  return box;
+}
 function ucTitle(uc){
   return uc.id+" — "+uc.name+"\n"+enfOf(uc)+" · "+uc.system+" · "+uc.impl+"\n"+
     (uc.confidence==="inferred"?"Rule INFERRED — never confirmed against a real event.\n":"")+
@@ -1321,6 +1355,7 @@ function buildNormal(tbl){
     const th=el("th","uc-h"+(uc.confidence==="inferred"?" unverified":""));
     th.append(el("div","code",uc.id));
     th.append(el("div","enf", ENF_ABBR[enfOf(uc)] || enfOf(uc).toUpperCase().slice(0,5)));
+    th.append(implTags(uc));
     th.append(el("div","ucname", uc.name));
     th.title=ucTitle(uc);
     r2.append(th);
@@ -1383,7 +1418,8 @@ function buildPivot(tbl){
       l1.append(el("span","code",uc.id), el("span","nm",uc.name));
       rc.append(l1);
       const l2=el("div","l2");
-      l2.append(document.createTextNode(enfOf(uc)+" · "+uc.impl));
+      l2.append(document.createTextNode(enfOf(uc)));
+      l2.append(implTags(uc));
       if(uc.risk) l2.append(el("span","badge","risk event"));
       if(uc.confidence==="inferred") l2.append(el("span","badge","inferred rule"));
       if(uc.status==="hold") l2.append(el("span","badge","on hold"));
@@ -1419,6 +1455,16 @@ function renderLegend(){
     li.append(sw, document.createTextNode(v[1]));
     li.title=v[2]; lg.append(li);
   });
+  // only the build kinds this pilot actually uses, set apart on the right
+  const kinds = IMPL.filter(x => D.ucs.some(uc => x.re.test(uc.impl||"")));
+  if(!kinds.length) return;
+  const grp=el("div","impl-legend");
+  kinds.forEach(x=>{
+    const li=el("div","li");
+    li.append(el("span","itag i-"+x.k.toLowerCase(),x.k), document.createTextNode(x.lbl));
+    li.title=x.tip; grp.append(li);
+  });
+  lg.append(grp);
 }
 
 function renderMatrix(){
@@ -1451,7 +1497,8 @@ function ruleText(uc){
 }
 function openCell(p,uc){
   const rows=D.rowsFor(uc.id,p.id).slice().sort((a,b)=>b.ts-a.ts);
-  showDrawer(p.name+" × "+uc.id, uc.name+" · "+enfFor(uc,p)+" · "+rows.length+" "+uc.unit, b=>{
+  const built = implOf(uc).map(x=>x.k).join(" + ");
+  showDrawer(p.name+" × "+uc.id, uc.name+" · "+enfFor(uc,p)+(built?" · "+built:"")+" · "+rows.length+" "+uc.unit, b=>{
     b.append(el("div","eyebrow","Matched by"));
     const r=el("div","rulebox"); r.style.marginTop="10px"; r.textContent=ruleText(uc); b.append(r);
     const others=[...new Set(D.rowsFor(uc.id).map(x=>x.pid))].length;

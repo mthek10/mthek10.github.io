@@ -142,7 +142,8 @@ denominator.
 |---|---|
 | `id`, `name` | `id` shows in the column header |
 | `enforcement` | A string, or `{ "def": "Mask", "by": { "T2": "Soft Block" } }` per group |
-| `system`, `impl` | Display only |
+| `system` | Display only |
+| `impl` | How the control is built. Drives the tag under each use case: text containing `Policy` shows **POLICY**, `Mod` shows **MOD** (both for `"Policy + Mod"`), and `Activity tracking` shows **TRACKING**. `"None"` shows no tag |
 | `groups` | Which roster groups this applies to |
 | `status` | `live`, `hold` (blocked by a dependency, excluded from coverage), `blocked` (defect), `disqualified` (hidden) |
 | `detect` | `event`, `span`, or `none` — `none` means it cannot emit telemetry and counts as working until verified by hand |
