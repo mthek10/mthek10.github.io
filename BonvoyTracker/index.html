@@ -236,7 +236,7 @@
   <!-- PROJECTION -->
   <section class="view active" id="view-projection">
     <div class="stats" id="proj-stats"></div>
-    <div class="card"><h2>Past stays</h2><p class="sub">22 stay nights + 40 credit-card nights + 6 promotional / choice nights = 68 posted. Points below are Marriott-posted stay earnings.</p><div id="past-stays"></div></div>
+    <div class="card"><h2>Past stays</h2><p class="sub">25 completed stay nights + 40 credit-card nights + 6 promotional / choice nights = 71 nights. Ritz-Carlton Mexico City is completed; its points and final qualifying spend are unconfirmed.</p><div id="past-stays"></div></div>
 
     <div class="card">
       <div class="head-row">
@@ -536,7 +536,7 @@ function render(){
 
   renderTrack(c);
   renderTrips(c);
-  $('#past-stays').innerHTML=SECURED.filter(e=>e.status==='completed').map(e=>`<div class="trip"><div class="info"><div class="nm">${e.label}</div><div class="meta">Completed · ${Number(e.actualPoints||0).toLocaleString()} posted points</div></div><div class="nights"><b>${e.nights}</b><span>${e.nights===1?'night':'nights'}</span></div></div>`).join('');
+  $('#past-stays').innerHTML=SECURED.filter(e=>e.status==='completed').map(e=>`<div class="trip"><div class="info"><div class="nm">${e.label}</div><div class="meta">Completed · ${e.actualPoints===undefined?'Points and final spend unconfirmed':Number(e.actualPoints).toLocaleString()+' posted points'}</div></div><div class="nights"><b>${e.nights}</b><span>${e.nights===1?'night':'nights'}</span></div></div>`).join('');
   renderAmbassador(c);
   renderPoints(c);
   save(); saveSecured(); savePts();
@@ -643,7 +643,7 @@ function renderPoints(c){
     const base=spend*baseRate, elite=Math.round(base*TIER_BONUS[tier]), card=['brilliant','business'].includes(cardKey)?spend*cmult:0;
     return {id:e.id, name:e.name||e.label, spend, tier, cardKey, base, elite, card, total:e.actualPoints!==undefined?e.actualPoints:base+elite+card, actual:e.actualPoints!==undefined, phase, pending:e.status==='completedpending'};
   });
-  const earnedRows=build(SECURED.filter(e=>e.status==='completed'),'earned');
+  const earnedRows=build(SECURED.filter(e=>e.status==='completed'&&e.actualPoints!==undefined),'earned');
   const projRows=build(TRIPS.filter(t=>t.on&&Number(t.spend)>0),'projected');
   const rows=earnedRows.concat(projRows);
   const promos=PTS.promos||[];
@@ -753,16 +753,17 @@ $('#t-add').addEventListener('click',()=>{
 });
 
 migrateSeptemberReservations();
-// Preserve saved estimates and toggles while updating the completed stay.
-if(localStorage.getItem('bonvoy_mig_mx_completed_20260921')!=='1'){
-  const mx=TRIPS.find(t=>t.id==='b1');
-  if(mx){
-    mx.status='completedpending';
-    mx.note=defaultTrips().find(t=>t.id==='b1').note;
-  }
-  save();
-  localStorage.setItem('bonvoy_mig_mx_completed_20260921','1');
+// Move the finished stay into history, retaining saved spend/card estimates.
+const completedMx=TRIPS.find(t=>t.id==='b1');
+if(!SECURED.some(e=>e.id==='b1')){
+  SECURED.push({
+    ...(completedMx||{}), id:'b1', status:'completed',
+    label:'Ritz-Carlton Mexico City · Sep 17–20', nights:3,
+    spend:completedMx?.spend??500, editable:true
+  });
 }
+TRIPS=TRIPS.filter(t=>t.id!=='b1');
+save(); saveSecured();
 render();
 </script>
 </body>
