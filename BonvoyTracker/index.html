@@ -181,6 +181,7 @@
   td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .rt{font-weight:700;color:var(--gold);}
   .chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+  .c-completedpending{background:#fdf3df;color:#bd8e35;}
   .c-completed{background:#eaf7ef;color:#2faa6f;}
   .c-booked{background:#fdf3df;color:#bd8e35;}
   .c-planned{background:#eaf1fb;color:#3d7fd6;}
@@ -397,7 +398,7 @@ function savePts(){ localStorage.setItem('bonvoy_pts_v1', JSON.stringify(PTS)); 
 function defaultTrips(){return[
 
 
-  {id:'b1', status:'inprogress',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:500, on:true, note:'238,000-point redemption; $500 incidental-spend estimate. Nights not yet posted.'},
+  {id:'b1', status:'completedpending',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:500, on:true, note:'238,000-point redemption; $500 incidental-spend estimate. Stay completed; nights, points, and final qualifying spend pending Marriott confirmation.'},
   {id:'sandiego', status:'planned', name:'San Diego (Callie Bday) · Nov 6–8', nights:2, spend:600, on:false},
   {id:'b2', status:'booked',  name:'Chiang Mai Marriott · Nov 20–22',      nights:2, spend:1000, on:true, note:'Corner Room, 1 King. THB 13,680 room rate; THB 16,238.16 total. USD projection remains an estimate.'},
   {id:'b3', status:'booked',  name:'Phulay Bay Ritz Reserve · Nov 22–24',  nights:2, spend:2000, on:true, card:'csr', note:'Chase The Edit · 2 nights; $2,317.20 booking total. Qualifying USD spend is estimated.'},
@@ -564,10 +565,10 @@ function renderTrips(c){
       <div class="info"><div class="nm">75-Night Choice Benefit · +5 ENC</div><div class="meta">Projection assumes you choose +5 ENC after reaching 75 nights</div></div>
       <div class="nights"><b>+5</b><span>nights</span></div>
     </div>` : '';
-  $('#trip-list').innerHTML = ['inprogress','booked','planned'].map(group=>{ const trips=TRIPS.filter(t=>t.status===group); return trips.length?`<h3>${({inprogress:'In progress',booked:'Booked stays',planned:'Planned stays'})[group]}</h3>`+trips.map(t=>`
+  $('#trip-list').innerHTML = ['completedpending','inprogress','booked','planned'].map(group=>{ const trips=TRIPS.filter(t=>t.status===group); return trips.length?`<h3>${({completedpending:'Completed · posting pending',inprogress:'In progress',booked:'Booked stays',planned:'Planned stays'})[group]}</h3>`+trips.map(t=>`
     <div class="trip ${t.on?'':'off'}">
       <label class="sw"><input type="checkbox" data-on="${t.id}" ${t.on?'checked':''}><span class="slider"></span></label>
-      <div class="info"><div class="nm">${t.name}</div><div class="meta">${t.status==='inprogress'?'In progress':t.status}${t.note?' · '+t.note:''}</div></div>
+      <div class="info"><div class="nm">${t.name}</div><div class="meta">${t.status==='completedpending'?'Completed':t.status==='inprogress'?'In progress':t.status}${t.note?' · '+t.note:''}</div></div>
       <div class="tspend"><span class="cur">$</span><input class="spend-in" type="number" min="0" step="100" value="${t.spend}" data-spend="${t.id}" title="Estimated spend"></div>
       <div class="nights"><b>${t.nights}</b><span>nights</span></div>
       <button class="trip-trash" data-del="${t.id}">✕</button>
@@ -640,7 +641,7 @@ function renderPoints(c){
   const build=(arr,phase)=>arr.map(e=>{
     const tier=e.tier||PTS.tier, cardKey=e.card||PTS.card, cmult=CARD_MULT[cardKey], spend=Number(e.spend)||0;
     const base=spend*baseRate, elite=Math.round(base*TIER_BONUS[tier]), card=['brilliant','business'].includes(cardKey)?spend*cmult:0;
-    return {id:e.id, name:e.name||e.label, spend, tier, cardKey, base, elite, card, total:e.actualPoints!==undefined?e.actualPoints:base+elite+card, actual:e.actualPoints!==undefined, phase};
+    return {id:e.id, name:e.name||e.label, spend, tier, cardKey, base, elite, card, total:e.actualPoints!==undefined?e.actualPoints:base+elite+card, actual:e.actualPoints!==undefined, phase, pending:e.status==='completedpending'};
   });
   const earnedRows=build(SECURED.filter(e=>e.status==='completed'),'earned');
   const projRows=build(TRIPS.filter(t=>t.on&&Number(t.spend)>0),'projected');
@@ -668,7 +669,7 @@ function renderPoints(c){
   const ledHead=`<thead><tr><th>Item</th><th>Status</th><th>Card</th><th class="n">Spend</th><th class="n">Points</th><th class="n">Balance</th></tr></thead>`;
   let run=balance;
   let up=`<tr class="pl-open"><td>Current balance</td><td></td><td></td><td class="n"></td><td class="n">—</td><td class="n rt">${P(run)}</td></tr>`;
-  projRows.forEach(r=>{ run+=r.total; up+=ptRow(r,'Upcoming','c-planned',run); });
+  projRows.forEach(r=>{ run+=r.total; up+=ptRow(r,r.pending?'Posting pending':'Upcoming',r.pending?'c-completedpending':'c-planned',run); });
   promos.forEach(p=>{ run+=Number(p.pts||0); up+=`<tr><td>✨ ${p.label} <span class="chip c-promo">Promo</span></td><td></td><td></td><td class="n"></td><td class="n">+${P(p.pts)}</td><td class="n rt">${P(run)}</td></tr>`; });
   if(projRows.length===0&&promos.length===0) up+=`<tr><td colspan="6" style="color:var(--faint);padding:12px">No upcoming trips toggled on — toggle trips in Status Tracker, or add promo points above.</td></tr>`;
   up+=`<tr class="pl-total"><td>Projected balance</td><td></td><td></td><td></td><td></td><td class="n rt">${P(run)}</td></tr>`;
@@ -702,7 +703,7 @@ function renderLedger(){
     (tripRows||`<tr><td colspan="5" style="color:var(--faint);padding:12px 14px;">No trips toggled on.</td></tr>`);
 }
 function row(status,label,nights,rt,spend,editId){
-  const names={completed:'Completed',inprogress:'In progress',booked:'Booked',planned:'Planned',promo:'Promo',creditcard:'Credit Card',choice:'Choice'};
+  const names={completed:'Completed',completedpending:'Completed · pending',inprogress:'In progress',booked:'Booked',planned:'Planned',promo:'Promo',creditcard:'Credit Card',choice:'Choice'};
   const spendCell = (editId!=null)
     ? `$<input class="spend-edit lg-spend" type="number" min="0" step="50" value="${spend||0}" data-editid="${editId}">`
     : (spend?money(spend):'—');
@@ -752,6 +753,16 @@ $('#t-add').addEventListener('click',()=>{
 });
 
 migrateSeptemberReservations();
+// Preserve saved estimates and toggles while updating the completed stay.
+if(localStorage.getItem('bonvoy_mig_mx_completed_20260921')!=='1'){
+  const mx=TRIPS.find(t=>t.id==='b1');
+  if(mx){
+    mx.status='completedpending';
+    mx.note=defaultTrips().find(t=>t.id==='b1').note;
+  }
+  save();
+  localStorage.setItem('bonvoy_mig_mx_completed_20260921','1');
+}
 render();
 </script>
 </body>
