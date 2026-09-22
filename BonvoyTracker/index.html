@@ -119,7 +119,7 @@
   .trip .gift{width:42px;height:24px;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
   .tspend{display:flex;align-items:center;gap:2px;flex:none;}
   .tspend .cur{font-size:12px;color:var(--faint);}
-  .tspend .spend-in{width:74px;background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;}
+  .tspend .spend-in{width:90px;background:#faf8f3;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;}
   .tspend .spend-in:focus{outline:none;border-color:var(--gold);background:#fff;}
   .trip.off .tspend .spend-in{color:var(--faint);}
 
@@ -277,7 +277,7 @@
       <div class="lp-row"><span>Qualifying Spend</span><span class="r" id="amb-s-lab"></span></div>
       <div class="lp"><div class="f" id="amb-s-f" style="background:var(--green)"></div><div class="p" id="amb-s-p"></div></div>
       <div class="qual-ctl"><span>Qualifying spend to date (actual)</span><span>$<input id="amb-qual" type="number" min="0" step="100"></span></div>
-      <p class="sub">Future spend is estimated, excluding taxes where known. Booking totals may differ from Ambassador-qualifying spend. Past ledger spend fields remain estimates; the actual total above comes from Marriott.</p>
+      <p class="sub">Booked spend uses room cost before Amex / Chase points redemptions, plus $1,500 per Reserve stay. Taxes and fees are excluded where itemized; otherwise booking totals are used. These estimates may exceed Ambassador-qualifying spend. Past ledger spend fields remain estimates; the actual total above comes from Marriott.</p>
       <div id="amb-breakdown"></div>
       <div id="amb-verdict"></div>
     </div>
@@ -395,18 +395,19 @@ let PTS = loadPts();
 function loadPts(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_pts_v1'));if(s&&s.tier)return s;}catch(e){} return {tier:'Platinum',card:'brilliant',base:10,balance:109713}; }
 function savePts(){ localStorage.setItem('bonvoy_pts_v1', JSON.stringify(PTS)); }
 
+// THB conversion: https://app.bot.or.th/BTWS_STAT/statistics/ReportPage.aspx?language=eng&reportID=123
 function defaultTrips(){return[
 
 
   {id:'b1', status:'completedpending',  name:'Ritz-Carlton Mexico City · Sep 17–20', nights:3, spend:500, on:true, note:'238,000-point redemption; $500 incidental-spend estimate. Stay completed; nights, points, and final qualifying spend pending Marriott confirmation.'},
   {id:'sandiego', status:'planned', name:'San Diego (Callie Bday) · Nov 6–8', nights:2, spend:600, on:false},
-  {id:'b2', status:'booked',  name:'Chiang Mai Marriott · Nov 20–22',      nights:2, spend:1000, on:true, note:'Corner Room, 1 King. THB 13,680 room rate; THB 16,238.16 total. USD projection remains an estimate.'},
-  {id:'b3', status:'booked',  name:'Phulay Bay Ritz Reserve · Nov 22–24',  nights:2, spend:2000, on:true, card:'csr', note:'Chase The Edit · 2 nights; $2,317.20 booking total. Qualifying USD spend is estimated.'},
-  {id:'b4', status:'booked',  name:'Mandapa Ritz Reserve · Nov 27–30',     nights:3, spend:3000, on:true, card:'none', note:'Two confirmed bookings: Nov 27–28 Amex FHR ($1,570.58 total), Nov 28–30 Chase The Edit ($3,164.15 total). Qualifying spend remains estimated.'},
-  {id:'b5', status:'booked',  name:'Ritz-Carlton Bangkok · Nov 24–27',     nights:3, spend:1500, on:true, card:'none', note:'Two confirmed bookings: Nov 24–25 and Nov 25–27 (Chase LHRC). Rate details unavailable; $1,500 remains an estimate.'},
+  {id:'b2', status:'booked',  name:'Chiang Mai Marriott · Nov 20–22',      nights:2, spend:410.92, on:true, note:'THB 13,680 room cost for 2 nights ≈ $410.92 at 33.291 THB/USD (Bank of Thailand, Sep 21, 2026). Excludes taxes and service charges.'},
+  {id:'b3', status:'booked',  name:'Phulay Bay Ritz Reserve · Nov 22–24',  nights:2, spend:3817.2, on:true, card:'csr', note:'$2,317.20 Chase The Edit booking total + $1,500 extra spend per Reserve stay = $3,817.20. Booking total includes room and tax; tax breakdown unavailable.'},
+  {id:'b4', status:'booked',  name:'Mandapa Ritz Reserve · Nov 27–30',     nights:3, spend:5962.15, on:true, card:'none', note:'$1,298.00 Amex FHR room cost (Nov 27–28) + $3,164.15 Chase The Edit booking total (Nov 28–30) + $1,500 extra spend for this continuous Reserve stay = $5,962.15. Chase tax breakdown unavailable.'},
+  {id:'b5', status:'booked',  name:'Ritz-Carlton Bangkok · Nov 24–27',     nights:3, spend:1453.72, on:true, card:'none', note:'$418.70 Amex FHR room cost (Nov 24–25) + $1,035.02 Chase booking total (Nov 25–27) = $1,453.72. Chase total includes taxes and $87.93 service charge; tax breakdown unavailable.'},
   {id:'h2', status:'planned', name:'Mark Birthday · October',              nights:3, spend:1200, on:false},
-  {id:'dance', status:'booked', name:'Marriott Boston Quincy (Mom) · Dec 10–13', nights:3, spend:708, on:true, note:'$708 room rate; $790.84 including taxes. Guest room, 2 Queen, City view, High floor.'},
-  {id:'santafe',      status:'booked', name:'La Posada de Santa Fe (Fish) · Dec 24–27', nights:3, spend:1005, on:true, note:'Confirmed Sep 19 · $1,005 room rate; $1,297.27 total including $120 resort fee and taxes. Cozy Artist Studio, 1 Queen.'},
+  {id:'dance', status:'booked', name:'Marriott Boston Quincy (Mom) · Dec 10–13', nights:3, spend:708, on:true, note:'$708 room cost for 3 nights; $790.84 including taxes. Guest room, 2 Queen, City view, High floor.'},
+  {id:'santafe',      status:'booked', name:'La Posada de Santa Fe (Fish) · Dec 24–27', nights:3, spend:1005, on:true, note:'$1,005 room cost for 3 nights; $1,297.27 total including $120 resort fee and taxes. Cozy Artist Studio, 1 Queen.'},
   {id:'santafe_thek', status:'planned', name:'California (Thek) · Dec 27–30', nights:3, spend:0,  on:false},
 ];}
 
@@ -569,7 +570,7 @@ function renderTrips(c){
     <div class="trip ${t.on?'':'off'}">
       <label class="sw"><input type="checkbox" data-on="${t.id}" ${t.on?'checked':''}><span class="slider"></span></label>
       <div class="info"><div class="nm">${t.name}</div><div class="meta">${t.status==='completedpending'?'Completed':t.status==='inprogress'?'In progress':t.status}${t.note?' · '+t.note:''}</div></div>
-      <div class="tspend"><span class="cur">$</span><input class="spend-in" type="number" min="0" step="100" value="${t.spend}" data-spend="${t.id}" title="Estimated spend"></div>
+      <div class="tspend"><span class="cur">$</span><input class="spend-in" type="number" min="0" step="0.01" value="${t.spend}" data-spend="${t.id}" title="Estimated spend"></div>
       <div class="nights"><b>${t.nights}</b><span>nights</span></div>
       <button class="trip-trash" data-del="${t.id}">✕</button>
     </div>`).join(''):''; }).join('') + bonusRow;
@@ -628,7 +629,7 @@ function ptRow(r, label, chip, runVal){
     <td>${r.name} <span class="chip ${chip}">${label}</span></td>
     <td><select class="tier-edit mini-sel" data-editid="${r.id}">${tierOptions(r.tier)}</select></td>
     <td><select class="card-edit mini-sel" data-editid="${r.id}">${cardOptions(r.cardKey)}</select></td>
-    <td class="n">$<input class="spend-edit" type="number" min="0" step="50" value="${r.spend}" data-editid="${r.id}"></td>
+    <td class="n">$<input class="spend-edit" type="number" min="0" step="0.01" value="${r.spend}" data-editid="${r.id}"></td>
     <td class="n">+${P(r.total)}${r.actual?' (posted)':''}</td>
     <td class="n rt">${P(runVal)}</td>
   </tr>`;
@@ -705,7 +706,7 @@ function renderLedger(){
 function row(status,label,nights,rt,spend,editId){
   const names={completed:'Completed',completedpending:'Completed · pending',inprogress:'In progress',booked:'Booked',planned:'Planned',promo:'Promo',creditcard:'Credit Card',choice:'Choice'};
   const spendCell = (editId!=null)
-    ? `$<input class="spend-edit lg-spend" type="number" min="0" step="50" value="${spend||0}" data-editid="${editId}">`
+    ? `$<input class="spend-edit lg-spend" type="number" min="0" step="0.01" value="${spend||0}" data-editid="${editId}">`
     : (spend?money(spend):'—');
   return `<tr><td><span class="chip c-${status}">${names[status]}</span></td><td>${label}</td>
     <td class="n">+${nights}</td><td class="n rt">${rt}</td><td class="n">${spendCell}</td></tr>`;
@@ -753,6 +754,18 @@ $('#t-add').addEventListener('click',()=>{
 });
 
 migrateSeptemberReservations();
+// Apply booking-based estimates once without changing trip selections or history.
+if(localStorage.getItem('bonvoy_mig_booked_room_costs_20260921')!=='1'){
+  for(const fresh of defaultTrips().filter(t=>t.status==='booked')){
+    const saved=TRIPS.find(t=>t.id===fresh.id);
+    if(saved && saved.status==='booked'){
+      saved.spend=fresh.spend;
+      saved.note=fresh.note;
+    }
+  }
+  save();
+  localStorage.setItem('bonvoy_mig_booked_room_costs_20260921','1');
+}
 // Move the finished stay into history, retaining saved spend/card estimates.
 const completedMx=TRIPS.find(t=>t.id==='b1');
 if(!SECURED.some(e=>e.id==='b1')){
