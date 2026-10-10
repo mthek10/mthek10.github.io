@@ -232,7 +232,7 @@
     <button data-tab="points">Points</button>
   </nav>
 
-  <p class="sub">Account verified September 19, 2026 · 68 posted nights · $12,006 qualifying spend · 109,713 points.</p>
+  <p class="sub">Account verified September 19, 2026 · 68 posted nights · $12,006 qualifying spend. Reservations reviewed October 10, 2026 · points balance 84,472 as of October 4 confirmation.</p>
   <!-- PROJECTION -->
   <section class="view active" id="view-projection">
     <div class="stats" id="proj-stats"></div>
@@ -289,7 +289,7 @@
       <div class="stat gold">
         <div class="l">Total Points</div>
         <div class="v"><input id="pts-balance" class="bal-input" type="number" min="0" step="1000" placeholder="0"></div>
-        <div class="s">current balance — editable</div>
+        <div class="s">October 4 confirmation snapshot — editable</div>
       </div>
       <div class="stat green">
         <div class="l">Posted stay points</div>
@@ -392,7 +392,7 @@ const CARD_LABEL={brilliant:'Brilliant 6×',business:'Business 6×',amexplat:'Am
 const CARD_KEYS=['brilliant','business','amexplat','csr','none'];
 const CARD_SHORT={brilliant:'Brilliant',business:'Business',amexplat:'Amex Plat',csr:'CSR',none:'None'};
 let PTS = loadPts();
-function loadPts(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_pts_v1'));if(s&&s.tier)return s;}catch(e){} return {tier:'Platinum',card:'brilliant',base:10,balance:109713}; }
+function loadPts(){ try{const s=JSON.parse(localStorage.getItem('bonvoy_pts_v1'));if(s&&s.tier)return s;}catch(e){} return {tier:'Platinum',card:'brilliant',base:10,balance:84472}; }
 function savePts(){ localStorage.setItem('bonvoy_pts_v1', JSON.stringify(PTS)); }
 
 // THB conversion: https://app.bot.or.th/BTWS_STAT/statistics/ReportPage.aspx?language=eng&reportID=123
@@ -406,8 +406,11 @@ function defaultTrips(){return[
   {id:'b4', status:'booked',  name:'Mandapa Ritz Reserve · Nov 27–30',     nights:3, spend:5962.15, on:true, card:'none', note:'$1,298.00 Amex FHR room cost (Nov 27–28) + $3,164.15 Chase The Edit booking total (Nov 28–30) + $1,500 extra spend for this continuous Reserve stay = $5,962.15. Chase tax breakdown unavailable.'},
   {id:'b5', status:'booked',  name:'Ritz-Carlton Bangkok · Nov 24–27',     nights:3, spend:1453.72, on:true, card:'none', note:'$418.70 Amex FHR room cost (Nov 24–25) + $1,035.02 Chase booking total (Nov 25–27) = $1,453.72. Chase total includes taxes and $87.93 service charge; tax breakdown unavailable.'},
   {id:'h2', status:'planned', name:'Mark Birthday · October',              nights:3, spend:1200, on:false},
-  {id:'dance', status:'booked', name:'Marriott Boston Quincy (Mom) · Dec 10–13', nights:3, spend:708, on:true, note:'$708 room cost for 3 nights; $790.84 including taxes. Guest room, 2 Queen, City view, High floor.'},
-  {id:'santafe',      status:'booked', name:'La Posada de Santa Fe (Fish) · Dec 24–27', nights:3, spend:1005, on:true, note:'$1,005 room cost for 3 nights; $1,297.27 total including $120 resort fee and taxes. Cozy Artist Studio, 1 Queen.'},
+  {id:'belmont_oct', status:'booked', name:'SpringHill Suites Belmont Redwood Shores · Oct 13–15', nights:2, spend:703.84, on:true, note:'October 1 confirmation; $703.84 room cost, $809.04 total including taxes and tourism fee. Parking excluded.'},
+  {id:'miami_oct', status:'booked', name:'TownePlace Suites Miami Airport · Oct 22–23', nights:1, spend:0, on:true, redemptionPoints:30000, note:'October 4 confirmation; 30,000 Bonvoy-point redemption. One elite night; $0 room qualifying spend. Parking and incidentals excluded.'},
+  {id:'dance', status:'booked', name:'Marriott Boston Quincy (Mom) · Dec 10–13', nights:3, spend:630, on:true, note:'September 23 replacement confirmation; prior reservation canceled. $630 room cost for 3 nights; $703.71 including taxes. Only counts toward your status if you personally stay.'},
+  {id:'santafe', alternativeGroup:'santafe_dec', status:'booked', name:'La Posada de Santa Fe (Fish) · Dec 24–27', nights:3, spend:1005, on:true, note:'$1,005 room cost for 3 nights; $1,297.27 total including $120 resort fee and taxes. Cozy Artist Studio, 1 Queen. September 19 confirmation remains uncanceled in email. Alternative to the September 23 booking below; select one for this night projection.'},
+  {id:'santafe_sep23', alternativeGroup:'santafe_dec', status:'booked', name:'La Posada de Santa Fe (alternate booking) · Dec 24–27', nights:3, spend:871, on:false, note:'September 23 confirmation; $871 room cost, $1,142.75 total including $120 resort fee and taxes. Replaces a different canceled reservation, not the Fish booking. Enabling this selects it instead of Fish to avoid counting the same nights twice.'},
   {id:'santafe_thek', status:'planned', name:'California (Thek) · Dec 27–30', nights:3, spend:0,  on:false},
 ];}
 
@@ -433,7 +436,7 @@ function migrateSeptemberReservations(){
 
 function load(){
   let trips=null;
-  try{const s=JSON.parse(localStorage.getItem('bonvoy_v2'));if(Array.isArray(s)&&s.length)trips=s;}catch(e){}
+  try{const s=JSON.parse(localStorage.getItem('bonvoy_v2'));if(Array.isArray(s))trips=s;}catch(e){}
   if(!trips) trips=defaultTrips();
   // one-time migration: fold the Sept 2026 trips into already-saved data
   try{
@@ -504,6 +507,17 @@ function load(){
 }
 function save(){ localStorage.setItem('bonvoy_v2', JSON.stringify(TRIPS)); }
 
+// Keep selection logic shared by the switches and all projection views.
+function setTripSelected(id, selected){
+  const trip=TRIPS.find(t=>t.id===id);
+  if(!trip) return;
+  trip.on=Boolean(selected);
+  if(trip.on && trip.alternativeGroup){
+    TRIPS.filter(t=>t.id!==id && t.alternativeGroup===trip.alternativeGroup).forEach(t=>t.on=false);
+  }
+  render();
+}
+
 function calc(){
   const onTrips = TRIPS.filter(t=>t.on);
   const tripNights = onTrips.reduce((s,t)=>s+Number(t.nights||0),0);
@@ -537,7 +551,7 @@ function render(){
 
   renderTrack(c);
   renderTrips(c);
-  $('#past-stays').innerHTML=SECURED.filter(e=>e.status==='completed').map(e=>`<div class="trip"><div class="info"><div class="nm">${e.label}</div><div class="meta">Completed · ${e.actualPoints===undefined?'Points and final spend unconfirmed':Number(e.actualPoints).toLocaleString()+' posted points'}</div></div><div class="nights"><b>${e.nights}</b><span>${e.nights===1?'night':'nights'}</span></div></div>`).join('');
+  $('#past-stays').innerHTML=SECURED.filter(e=>e.status==='completed').map(e=>`<div class="trip"><div class="info"><div class="nm">${e.label}</div><div class="meta">Completed · ${e.actualPoints===undefined?(e.actualBonusPoints?Number(e.actualBonusPoints).toLocaleString()+' bonus points confirmed; full stay points and final spend unconfirmed':'Points and final spend unconfirmed'):Number(e.actualPoints).toLocaleString()+' posted points'}</div></div><div class="nights"><b>${e.nights}</b><span>${e.nights===1?'night':'nights'}</span></div></div>`).join('');
   renderAmbassador(c);
   renderPoints(c);
   save(); saveSecured(); savePts();
@@ -568,14 +582,14 @@ function renderTrips(c){
     </div>` : '';
   $('#trip-list').innerHTML = ['completedpending','inprogress','booked','planned'].map(group=>{ const trips=TRIPS.filter(t=>t.status===group); return trips.length?`<h3>${({completedpending:'Completed · posting pending',inprogress:'In progress',booked:'Booked stays',planned:'Planned stays'})[group]}</h3>`+trips.map(t=>`
     <div class="trip ${t.on?'':'off'}">
-      <label class="sw"><input type="checkbox" data-on="${t.id}" ${t.on?'checked':''}><span class="slider"></span></label>
+      <label class="sw"><input type="checkbox" aria-label="Include ${t.name} in projection" data-on="${t.id}" ${t.on?'checked':''}><span class="slider"></span></label>
       <div class="info"><div class="nm">${t.name}</div><div class="meta">${t.status==='completedpending'?'Completed':t.status==='inprogress'?'In progress':t.status}${t.note?' · '+t.note:''}</div></div>
       <div class="tspend"><span class="cur">$</span><input class="spend-in" type="number" min="0" step="0.01" value="${t.spend}" data-spend="${t.id}" title="Estimated spend"></div>
       <div class="nights"><b>${t.nights}</b><span>nights</span></div>
       <button class="trip-trash" data-del="${t.id}">✕</button>
     </div>`).join(''):''; }).join('') + bonusRow;
   $('#trip-list').querySelectorAll('[data-on]').forEach(cb=>cb.addEventListener('change',e=>{
-    const t=TRIPS.find(x=>x.id===e.target.dataset.on); if(t){t.on=e.target.checked; render();}
+    setTripSelected(e.target.dataset.on,e.target.checked);
   }));
   $('#trip-list').querySelectorAll('[data-spend]').forEach(inp=>inp.addEventListener('change',e=>{
     const t=TRIPS.find(x=>x.id===e.target.dataset.spend); if(t){t.spend=Number(e.target.value)||0; render();}
@@ -776,6 +790,21 @@ if(!SECURED.some(e=>e.id==='b1')){
   });
 }
 TRIPS=TRIPS.filter(t=>t.id!=='b1');
+// Latest confirmations also migrate existing browser data without resetting selections.
+if(localStorage.getItem('bonvoy_mig_confirmations_20261010')!=='1'){
+  for(const id of ['belmont_oct','miami_oct','dance','santafe','santafe_sep23']){
+    const fresh=defaultTrips().find(t=>t.id===id);
+    const old=TRIPS.find(t=>t.id===id);
+    if(old){ const selected=old.on; Object.assign(old,fresh,{on:selected}); }
+    else TRIPS.push({...fresh});
+  }
+  // A snapshot replaces the previous default, but retains a manually edited balance.
+  if(PTS.balance===109713) PTS.balance=84472;
+  const mx=SECURED.find(e=>e.id==='b1');
+  if(mx) mx.actualBonusPoints=727; // Already included in the later balance; do not add again.
+  save(); saveSecured(); savePts();
+  localStorage.setItem('bonvoy_mig_confirmations_20261010','1');
+}
 save(); saveSecured();
 render();
 </script>
