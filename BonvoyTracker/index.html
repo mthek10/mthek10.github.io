@@ -232,11 +232,11 @@
     <button data-tab="points">Points</button>
   </nav>
 
-  <p class="sub">Account verified October 25, 2026 · 73 posted nights · $12,903 qualifying spend · 152,631 points. Miami checkout confirmed October 23; its night, spend, and points are still pending posting.</p>
+  <p class="sub">Nights updated October 28, 2026 · 74 posted nights, including Miami. Last verified October 25: $12,903 qualifying spend · 152,631 points. Miami spend and points remain unconfirmed.</p>
   <!-- PROJECTION -->
   <section class="view active" id="view-projection">
     <div class="stats" id="proj-stats"></div>
-    <div class="card"><h2>Past stays</h2><p class="sub">27 posted stay nights + 40 credit-card nights + 6 promotional / choice nights = 73 posted nights. Miami adds 1 completed night awaiting posting and is included in the projection below.</p><div id="past-stays"></div></div>
+    <div class="card"><h2>Past stays</h2><p class="sub">28 posted stay nights + 40 credit-card nights + 6 promotional / choice nights = 74 posted nights. Miami’s October 22–23 night is now posted.</p><div id="past-stays"></div></div>
 
     <div class="card">
       <div class="head-row">
@@ -346,7 +346,7 @@ const AMB_SPEND = 23000;
 const money = n => '$'+Number(n||0).toLocaleString();
 function statusFor(n){ if(n>=100)return'Ambassador'; if(n>=75)return'Titanium'; if(n>=50)return'Platinum'; if(n>=25)return'Gold'; if(n>=10)return'Silver'; return'Member'; }
 
-// Historical defaults are reconciled by the October 25 account migration below. Completed-stay spend is editable & persisted;
+// Historical defaults are reconciled by the account migrations below. Completed-stay spend is editable & persisted;
 // hotel-stay spends below are pre-filled ESTIMATES you can adjust.
 function defaultSecured(){return[
   {id:'cc1', status:'creditcard', label:'Bonvoy Brilliant (+25 ENC)', nights:25, spend:0, editable:false},
@@ -522,6 +522,7 @@ function calc(){
   const onTrips = TRIPS.filter(t=>t.on);
   const tripNights = onTrips.reduce((s,t)=>s+Number(t.nights||0),0);
   const tripSpend  = onTrips.reduce((s,t)=>s+Number(t.spend||0),0);
+  const pendingSpend = SECURED.filter(e=>e.postingPending).reduce((s,e)=>s+Number(e.spend||0),0);
   const baseProjected = securedNights() + tripNights;   // before the 75-night benefit
   const bonus75 = baseProjected >= 75 ? 5 : 0;          // +5 ENC unlocked at 75 projected nights
   return {
@@ -530,7 +531,7 @@ function calc(){
     bonus75,
     projected: baseProjected + bonus75,
     securedSpend: QUAL,
-    projectedSpend: QUAL + tripSpend,
+    projectedSpend: QUAL + pendingSpend + tripSpend,
   };
 }
 
@@ -621,9 +622,10 @@ function renderAmbassador(c){
   const onTrips=TRIPS.filter(t=>t.on);
   let bd='';
   if(c.securedSpend>0) bd+=`<div class="bd-row"><span>Qualifying spend to date</span><span>${money(c.securedSpend)}</span></div>`;
+  SECURED.filter(e=>e.postingPending).forEach(e=>{ bd+=`<div class="bd-row"><span>${e.label} · spend unconfirmed</span><span>${money(e.spend)}</span></div>`; });
   onTrips.forEach(t=>{ bd+=`<div class="bd-row ${t.spend?'':'zero'}"><span>${t.name}</span><span>${money(t.spend)}</span></div>`; });
   if(!onTrips.length && c.securedSpend===0) bd=`<div class="bd-row zero"><span>No projected trips turned on</span><span>—</span></div>`;
-  $('#amb-breakdown').innerHTML=`<div class="bd"><div class="bd-h">Projected spend from trips turned on</div>${bd}
+  $('#amb-breakdown').innerHTML=`<div class="bd"><div class="bd-h">Projected qualifying spend</div>${bd}
     <div class="bd-row total"><span>Projected total</span><span>${money(c.projectedSpend)}</span></div></div>`;
 
   const nightsOk=c.projected>=100, spendOk=c.projectedSpend>=AMB_SPEND;
@@ -656,10 +658,11 @@ function renderPoints(c){
   const build=(arr,phase)=>arr.map(e=>{
     const tier=e.tier||PTS.tier, cardKey=e.card||PTS.card, cmult=CARD_MULT[cardKey], spend=Number(e.spend)||0;
     const base=spend*(Number(e.baseRate)||baseRate), elite=Math.round(base*TIER_BONUS[tier]), card=['brilliant','business'].includes(cardKey)?spend*cmult:0;
-    return {id:e.id, name:e.name||e.label, spend, tier, cardKey, base, elite, card, total:e.actualPoints!==undefined?e.actualPoints:base+elite+card, actual:e.actualPoints!==undefined, phase, pending:e.status==='completedpending'};
+    return {id:e.id, name:e.name||e.label, spend, tier, cardKey, base, elite, card, total:e.actualPoints!==undefined?e.actualPoints:base+elite+card, actual:e.actualPoints!==undefined, phase, pending:e.status==='completedpending'||e.postingPending};
   });
   const earnedRows=build(SECURED.filter(e=>e.status==='completed'&&e.actualPoints!==undefined),'earned');
-  const projRows=build(TRIPS.filter(t=>t.on&&Number(t.spend)>0),'projected');
+  const pendingStays=SECURED.filter(e=>e.postingPending&&e.actualPoints===undefined&&Number(e.spend)>0);
+  const projRows=build(pendingStays.concat(TRIPS.filter(t=>t.on&&Number(t.spend)>0)),'projected');
   const rows=earnedRows.concat(projRows);
   const promos=PTS.promos||[];
   const promoPts=promos.reduce((s,p)=>s+Number(p.pts||0),0);
@@ -827,6 +830,24 @@ if(localStorage.getItem('bonvoy_mig_account_20261025')!=='1'){
   PTS.balance=152631;
   save(); saveSecured(); saveQual(); savePts();
   localStorage.setItem('bonvoy_mig_account_20261025','1');
+}
+// Miami's elite night is confirmed; keep unconfirmed spend and points projected.
+if(localStorage.getItem('bonvoy_mig_miami_night_20261028')!=='1'){
+  const miamiTrip=TRIPS.find(t=>t.id==='miami_oct');
+  const miamiStay=SECURED.find(e=>e.id==='miami_oct');
+  const postedMiami={
+    ...miamiTrip, ...miamiStay, id:'miami_oct', status:'completed',
+    label:'TownePlace Suites Miami Airport · Oct 22–23', nights:1,
+    spend:miamiStay?.spend??miamiTrip?.spend??129, baseRate:5,
+    redemptionPoints:0, editable:true, postingPending:true,
+    note:'One elite night confirmed posted October 28, 2026. October 23 folio: $129 room cost; $145.77 including taxes. Qualifying spend and points remain unconfirmed; estimates are retained until reconciled.'
+  };
+  delete postedMiami.on;
+  if(miamiStay) Object.assign(miamiStay,postedMiami);
+  else SECURED.push(postedMiami);
+  TRIPS=TRIPS.filter(t=>t.id!=='miami_oct');
+  save(); saveSecured();
+  localStorage.setItem('bonvoy_mig_miami_night_20261028','1');
 }
 save(); saveSecured();
 render();
